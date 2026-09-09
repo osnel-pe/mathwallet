@@ -5,22 +5,26 @@ import {
   Camera,
   Keyboard,
   LoaderCircle,
-  QrCode,
-  X
+  ScanLine
 } from 'lucide-react'
 
 export default function ScannerQR({
   onRead,
-  title = 'Escanear tarjeta',
+  title = '¡Cuenta tus MathCoins!',
   allowManual = false
 }) {
   const [manual, setManual] = useState(false)
-  const [manualId, setManualId] = useState('')
-  const [processing, setProcessing] = useState(false)
+  const [id, setId] = useState('')
+  const [locked, setLocked] = useState(false)
   const [cameraError, setCameraError] = useState('')
 
   const processingRef = useRef(false)
-  const cameraErrorRef = useRef(false)
+  const errorReportedRef = useRef(false)
+
+  function unlockScanner() {
+    processingRef.current = false
+    setLocked(false)
+  }
 
   async function accept(value) {
     const cleanId = String(value || '').trim()
@@ -29,87 +33,81 @@ export default function ScannerQR({
 
     if (!/^\d+$/.test(cleanId)) {
       setCameraError(
-        'El código escaneado no corresponde a una tarjeta válida.'
+        'El QR leído no contiene un ID numérico válido.'
       )
       return
     }
 
     processingRef.current = true
-    setProcessing(true)
+    setLocked(true)
     setCameraError('')
 
     try {
       const opened = await onRead(cleanId)
 
       if (opened === false) {
-        processingRef.current = false
-        setProcessing(false)
+        unlockScanner()
       }
     } catch (error) {
-      console.error('Error al localizar el alumno:', error)
-
-      setCameraError(
-        'No encontramos un alumno asociado con esta tarjeta.'
+      console.error(
+        'No se pudo abrir el alumno:',
+        error
       )
 
-      processingRef.current = false
-      setProcessing(false)
+      setCameraError(
+        'No encontramos un alumno asociado con este código.'
+      )
+
+      unlockScanner()
     }
   }
 
   function handleScan(results) {
     if (processingRef.current) return
 
-    const detectedCode = results?.find(
-      (result) =>
-        result?.format === 'qr_code' &&
-        result?.rawValue
+    const detected = results?.find(
+      (result) => result?.rawValue
     )
 
-    if (detectedCode) {
-      accept(detectedCode.rawValue)
+    if (detected?.rawValue) {
+      accept(detected.rawValue)
     }
   }
 
   function handleCameraError(error) {
-    console.error('Error de cámara:', error)
+    console.error(
+      'Error del escáner:',
+      error
+    )
 
-    if (cameraErrorRef.current) return
+    if (errorReportedRef.current) return
 
-    cameraErrorRef.current = true
+    errorReportedRef.current = true
 
     setCameraError(
-      'No pudimos abrir la cámara. Revisa que MathWallet tenga permiso para utilizarla.'
+      allowManual
+        ? 'No se pudo abrir la cámara. Autoriza el permiso o utiliza el ID manual.'
+        : 'No se pudo abrir la cámara. Autoriza el permiso para escanear tu tarjeta.'
     )
   }
 
-  function toggleManualMode() {
+  function changeMode() {
     if (!allowManual) return
 
     processingRef.current = false
-    cameraErrorRef.current = false
+    errorReportedRef.current = false
 
-    setProcessing(false)
+    setLocked(false)
     setCameraError('')
-    setManualId('')
     setManual((current) => !current)
   }
 
-  function retryCamera() {
-    processingRef.current = false
-    cameraErrorRef.current = false
-
-    setProcessing(false)
-    setCameraError('')
-    setManual(false)
-  }
-
   return (
-    <section className="pro-scanner-card">
-      <div className="pro-scanner-header">
+    <section className="scanner-card scanner-pro-card">
+      <div className="section-heading scanner-heading">
         <div>
           <span className="eyebrow">
-            ESCÁNER INTELIGENTE
+            CHECA TU MATHWALLET
           </span>
 
           <h2>{title}</h2>
@@ -118,168 +116,142 @@ export default function ScannerQR({
         {allowManual && (
           <button
             type="button"
-            className="scanner-mode-button"
-            onClick={toggleManualMode}
+            className="icon-button scanner-mode"
+            onClick={changeMode}
             aria-label={
               manual
-                ? 'Volver a la cámara'
+                ? 'Abrir cámara'
                 : 'Escribir ID manualmente'
             }
           >
             {manual
-              ? <Camera size={21} />
-              : <Keyboard size={21} />}
+              ? <Camera size={20} />
+              : <Keyboard size={20} />}
           </button>
         )}
       </div>
 
       {manual && allowManual ? (
         <form
-          className="teacher-manual-search"
+          className="manual-id"
           onSubmit={(event) => {
             event.preventDefault()
-            accept(manualId)
+            accept(id)
           }}
         >
-          <label htmlFor="manual-student-id">
-            ID del alumno
-          </label>
+          <input
+            inputMode="numeric"
+            enterKeyHint="go"
+            value={id}
+            onChange={(event) => {
+              setId(
+                event.target.value.replace(/\D/g, '')
+              )
 
-          <div>
-            <input
-              id="manual-student-id"
-              inputMode="numeric"
-              enterKeyHint="go"
-              value={manualId}
-              onChange={(event) => {
-                setManualId(
-                  event.target.value.replace(/\D/g, '')
-                )
+              setCameraError('')
+            }}
+            placeholder="ID del alumno"
+            autoFocus
+          />
 
-                setCameraError('')
-              }}
-              placeholder="Escribe el ID"
-              autoFocus
-            />
-
-            <button
-              type="submit"
-              className="primary"
-              disabled={!manualId || processing}
-            >
-              {processing
-                ? (
-                  <LoaderCircle
-                    className="scanner-spinner"
-                    size={20}
-                  />
-                )
-                : 'Buscar'}
-            </button>
-          </div>
+          <button
+            className="primary"
+            type="submit"
+            disabled={!id || locked}
+          >
+            {locked ? (
+              <LoaderCircle
+                className="scanner-spinner"
+                size={20}
+              />
+            ) : (
+              'Buscar'
+            )}
+          </button>
         </form>
       ) : (
         <div className="qr-portal">
-          <div className="qr-portal-glow" />
+          <Scanner
+            formats={['qr_code']}
+            constraints={{
+              facingMode: {
+                ideal: 'environment'
+              }
+            }}
+            scanDelay={100}
+            retryDelay={200}
+            allowMultiple={false}
+            paused={locked}
+            onScan={handleScan}
+            onError={handleCameraError}
+            components={{
+              audio: false,
+              finder: false,
+              onOff: false,
+              torch: false,
+              zoom: false
+            }}
+          />
 
-          <div className="qr-camera-square">
-            <Scanner
-              formats={['qr_code']}
-              constraints={{
-                facingMode: {
-                  ideal: 'environment'
-                },
-                width: {
-                  ideal: 1280
-                },
-                height: {
-                  ideal: 1280
-                }
-              }}
-              allowMultiple={false}
-              paused={processing}
-              retryDelay={150}
-              onScan={handleScan}
-              onError={handleCameraError}
-              components={{
-                audio: false,
-                finder: false,
-                tracker: undefined,
-                onOff: false,
-                torch: false,
-                zoom: false
-              }}
-            />
+          <div
+            className="qr-shade"
+            aria-hidden="true"
+          />
 
-            <div
-              className="qr-dark-mask"
-              aria-hidden="true"
-            />
+          <div
+            className="qr-target"
+            aria-hidden="true"
+          >
+            <i className="corner corner-tl" />
+            <i className="corner corner-tr" />
+            <i className="corner corner-bl" />
+            <i className="corner corner-br" />
 
-            <div
-              className="qr-focus-frame"
-              aria-hidden="true"
-            >
-              <span className="corner top-left" />
-              <span className="corner top-right" />
-              <span className="corner bottom-left" />
-              <span className="corner bottom-right" />
-
-              {!processing && (
-                <span className="qr-scan-line" />
-              )}
-
-              <span className="qr-center-symbol">
-                <QrCode size={27} />
-              </span>
-            </div>
-
-            {processing && (
-              <div
-                className="qr-processing"
-                aria-live="polite"
-              >
-                <LoaderCircle
-                  className="scanner-spinner"
-                  size={29}
-                />
-
-                <strong>Abriendo perfil</strong>
-              </div>
+            {!locked && (
+              <span className="laser-line" />
             )}
+
+            <ScanLine
+              className="target-symbol"
+              size={25}
+            />
           </div>
+
+          <div className="camera-status">
+            <span className="live-dot" />
+            Cámara activa
+          </div>
+
+          {locked && (
+            <div
+              className="scanner-processing"
+              aria-live="polite"
+            >
+              <LoaderCircle
+                className="scanner-spinner"
+                size={28}
+              />
+
+              <strong>QR reconocido</strong>
+              <small>Abriendo perfil…</small>
+            </div>
+          )}
         </div>
       )}
 
       {cameraError && (
-        <div className="pro-scanner-error" role="alert">
-          <AlertCircle size={20} />
-
+        <div
+          className="scanner-error"
+          role="alert"
+        >
+          <AlertCircle size={19} />
           <span>{cameraError}</span>
-
-          <button
-            type="button"
-            onClick={retryCamera}
-            aria-label="Cerrar mensaje"
-          >
-            <X size={18} />
-          </button>
         </div>
       )}
 
-      {!manual && (
-        <p className="scanner-instruction">
-          Centra el QR dentro del cuadrado. La lectura
-          comenzará automáticamente.
-        </p>
-      )}
-
-      {!allowManual && (
-        <div className="scanner-security-note">
-          <QrCode size={16} />
-          Acceso exclusivo mediante tarjeta QR
-        </div>
-      )}
+      <p className="helper">
+        Centra el código QR dentro del marco dorado.
+      </p>
     </section>
   )
 }

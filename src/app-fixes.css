@@ -1,0 +1,680 @@
+/*
+  Fondo inmóvil, encabezado inmóvil
+  y contenido desplazable.
+*/
+
+html {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: #03110d;
+}
+
+body {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: #03110d;
+  overscroll-behavior: none;
+}
+
+body::before {
+  content: "";
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 0 !important;
+  width: 100%;
+  height: 100%;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(0, 12, 9, 0.91),
+      rgba(2, 47, 35, 0.76) 46%,
+      rgba(0, 0, 0, 0.9)
+    ),
+    radial-gradient(
+      circle at 82% 12%,
+      rgba(216, 170, 60, 0.13),
+      transparent 30%
+    ),
+    url("/math-background.jpg")
+      center / cover no-repeat !important;
+
+  pointer-events: none;
+  transform: translateZ(0);
+}
+
+#root {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.app-shell {
+  position: fixed;
+  inset: 0;
+
+  display: flex !important;
+  flex-direction: column;
+
+  width: 100%;
+  height: 100%;
+  height: 100dvh;
+  min-height: 0 !important;
+
+  overflow: hidden !important;
+  background: transparent;
+}
+
+/* Encabezado completamente inmóvil */
+
+.app-shell > header,
+.app-shell > .teacher-topbar {
+  position: relative !important;
+  inset: auto !important;
+  z-index: 30;
+
+  flex: 0 0 auto;
+  width: 100%;
+
+  min-height: calc(
+    58px + env(safe-area-inset-top)
+  );
+
+  padding-top:
+    env(safe-area-inset-top);
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(1, 24, 17, 0.96),
+      rgba(0, 10, 7, 0.93)
+    );
+
+  border-bottom:
+    1px solid rgba(216, 170, 60, 0.25);
+
+  box-shadow:
+    0 9px 28px rgba(0, 0, 0, 0.32);
+
+  backdrop-filter:
+    blur(20px) saturate(150%);
+}
+
+/* Solamente esta parte se desplaza */
+
+.app-shell > .page-content {
+  position: relative;
+  z-index: 1;
+
+  flex: 1 1 auto;
+  min-height: 0;
+
+  width: min(100%, 720px);
+
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+
+  padding-bottom: max(
+    28px,
+    calc(
+      env(safe-area-inset-bottom) + 18px
+    )
+  );
+
+  scrollbar-width: none;
+}
+
+.app-shell >
+.page-content::-webkit-scrollbar {
+  display: none;
+}
+
+/* Portada */
+
+.access-page {
+  position: fixed;
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+  height: 100dvh;
+
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+
+  background: transparent;
+}
+
+.access-page::-webkit-scrollbar {
+  display: none;
+}
+
+/* Tarjeta del periodo */
+
+.period-status-card {
+  display: grid;
+  grid-template-columns:
+    45px minmax(0, 1fr) auto;
+
+  align-items: center;
+  gap: 11px;
+
+  margin: 0 0 12px;
+  padding: 12px;
+
+  border:
+    1px solid rgba(216, 170, 60, 0.34);
+
+  border-radius: 18px;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(8, 76, 56, 0.88),
+      rgba(2, 25, 18, 0.9)
+    );
+
+  box-shadow:
+    inset 0 1px 0
+      rgba(255, 255, 255, 0.12),
+    0 13px 28px
+      rgba(0, 0, 0, 0.28);
+
+  backdrop-filter: blur(18px);
+}
+
+.period-status-icon {
+  display: grid;
+  place-items: center;
+
+  width: 45px;
+  height: 45px;
+
+  border:
+    1px solid rgba(239, 202, 103, 0.5);
+
+  border-radius: 14px;
+
+  color: #f0ca67;
+  background:
+    rgba(216, 170, 60, 0.12);
+}
+
+.period-status-card > div {
+  display: grid;
+  gap: 3px;
+}
+
+.period-status-card > div small {
+  color: #d7b75f;
+  font-size: 0.61rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+}
+
+.period-status-card > div strong {
+  color: #fff;
+  font-size: 1rem;
+}
+
+.period-target {
+  display: grid;
+  gap: 2px;
+  text-align: right;
+}
+
+.period-target small {
+  color: #aebfb9;
+  font-size: 0.64rem;
+}
+
+.period-target b {
+  color: #f3d277;
+  font-size: 0.83rem;
+  white-space: nowrap;
+}
+
+/* Saldo del alumno */
+
+.wallet-balance-card {
+  position: relative;
+  overflow: hidden;
+
+  margin-bottom: 11px;
+  padding: 20px 17px 15px;
+
+  border:
+    1px solid rgba(216, 170, 60, 0.42);
+
+  border-radius: 22px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(4, 100, 72, 0.94),
+      rgba(1, 27, 19, 0.94)
+    );
+
+  box-shadow:
+    inset 0 1px 0
+      rgba(255, 255, 255, 0.16),
+    0 18px 42px
+      rgba(0, 0, 0, 0.34);
+}
+
+.wallet-balance-card::after {
+  content: "";
+  position: absolute;
+  right: -35px;
+  top: -55px;
+
+  width: 150px;
+  height: 150px;
+
+  border-radius: 50%;
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(231, 190, 83, 0.2),
+      transparent 68%
+    );
+
+  pointer-events: none;
+}
+
+.wallet-balance-label {
+  position: relative;
+  z-index: 1;
+
+  color: #f0ca67;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+}
+
+.wallet-main-balance {
+  position: relative;
+  z-index: 1;
+
+  display: flex;
+  align-items: center;
+  gap: 9px;
+
+  margin: 7px 0 3px;
+
+  color: #fff;
+
+  font-size:
+    clamp(2.25rem, 12vw, 3.25rem);
+
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.wallet-main-balance svg {
+  width: 30px;
+  height: 30px;
+  color: #efc65d;
+}
+
+.wallet-balance-card > small {
+  color: #c0d0ca;
+}
+
+.wallet-accumulated-row {
+  position: relative;
+  z-index: 1;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+
+  margin-top: 16px;
+  padding: 12px;
+
+  border:
+    1px solid rgba(255, 255, 255, 0.12);
+
+  border-radius: 14px;
+
+  background:
+    rgba(0, 12, 8, 0.28);
+}
+
+.wallet-accumulated-row > div {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+
+  color: #c5d4cf;
+  font-size: 0.75rem;
+}
+
+.wallet-accumulated-row svg {
+  color: #eac35f;
+}
+
+.wallet-accumulated-row > strong {
+  color: #f4d57f;
+  font-size: 1rem;
+  white-space: nowrap;
+}
+
+/* Escáner espectacular */
+
+.scanner-pro-card {
+  overflow: hidden;
+  padding: 16px !important;
+
+  border-color:
+    rgba(216, 170, 60, 0.32) !important;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(7, 47, 35, 0.82),
+      rgba(0, 12, 8, 0.86)
+    ) !important;
+}
+
+.scanner-heading {
+  margin-bottom: 14px;
+}
+
+.scanner-mode {
+  flex: none;
+}
+
+.qr-portal {
+  position: relative;
+  overflow: hidden;
+
+  width: min(100%, 470px);
+  aspect-ratio: 1 / 1;
+  margin: 0 auto;
+
+  border:
+    1px solid rgba(232, 196, 102, 0.48);
+
+  border-radius: 24px;
+
+  background: #010806;
+
+  box-shadow:
+    inset 0 0 45px
+      rgba(0, 0, 0, 0.55),
+    0 16px 38px
+      rgba(0, 0, 0, 0.34);
+}
+
+.qr-portal > div:first-child,
+.qr-portal video {
+  position: absolute !important;
+  inset: 0 !important;
+
+  width: 100% !important;
+  height: 100% !important;
+
+  object-fit: cover !important;
+  border-radius: 0 !important;
+}
+
+.qr-portal canvas {
+  display: none !important;
+}
+
+.qr-shade {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+
+  pointer-events: none;
+
+  background:
+    radial-gradient(
+      circle at center,
+      transparent 0 33%,
+      rgba(0, 9, 6, 0.22) 50%,
+      rgba(0, 8, 5, 0.63) 100%
+    );
+}
+
+.qr-target {
+  position: absolute;
+  inset: 17%;
+  z-index: 3;
+
+  border:
+    1px solid rgba(255, 255, 255, 0.14);
+
+  border-radius: 18px;
+
+  pointer-events: none;
+
+  box-shadow:
+    0 0 28px
+      rgba(216, 170, 60, 0.14),
+    inset 0 0 28px
+      rgba(4, 91, 65, 0.12);
+}
+
+.corner {
+  position: absolute;
+
+  width: 31px;
+  height: 31px;
+
+  border-color: #edc860;
+  border-style: solid;
+
+  filter:
+    drop-shadow(
+      0 0 7px
+      rgba(237, 200, 96, 0.65)
+    );
+}
+
+.corner-tl {
+  top: -2px;
+  left: -2px;
+
+  border-width: 3px 0 0 3px;
+  border-radius: 15px 0 0;
+}
+
+.corner-tr {
+  top: -2px;
+  right: -2px;
+
+  border-width: 3px 3px 0 0;
+  border-radius: 0 15px 0 0;
+}
+
+.corner-bl {
+  bottom: -2px;
+  left: -2px;
+
+  border-width: 0 0 3px 3px;
+  border-radius: 0 0 0 15px;
+}
+
+.corner-br {
+  right: -2px;
+  bottom: -2px;
+
+  border-width: 0 3px 3px 0;
+  border-radius: 0 0 15px;
+}
+
+.laser-line {
+  position: absolute;
+  left: 7%;
+  right: 7%;
+  top: 12%;
+
+  height: 2px;
+  border-radius: 999px;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      #f0ca67,
+      #fff1b9,
+      #f0ca67,
+      transparent
+    );
+
+  box-shadow:
+    0 0 12px #e7bd53;
+
+  animation:
+    laserScan 1.45s ease-in-out
+    infinite alternate;
+}
+
+.target-symbol {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+
+  opacity: 0.3;
+  color: #fff;
+
+  transform:
+    translate(-50%, -50%);
+}
+
+.camera-status {
+  position: absolute;
+  top: 13px;
+  left: 13px;
+  z-index: 4;
+
+  display: flex;
+  align-items: center;
+  gap: 7px;
+
+  padding: 7px 10px;
+
+  border:
+    1px solid rgba(255, 255, 255, 0.15);
+
+  border-radius: 999px;
+
+  color: #dce9e4;
+  background:
+    rgba(0, 18, 12, 0.64);
+
+  backdrop-filter: blur(10px);
+
+  font-size: 0.68rem;
+  font-weight: 750;
+}
+
+.live-dot {
+  width: 7px;
+  height: 7px;
+
+  border-radius: 50%;
+
+  background: #42e5a9;
+
+  box-shadow:
+    0 0 9px #42e5a9;
+}
+
+.scanner-processing {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 7px;
+
+  color: #fff;
+  background:
+    rgba(0, 25, 18, 0.76);
+
+  backdrop-filter: blur(8px);
+}
+
+.scanner-processing strong {
+  font-size: 1rem;
+}
+
+.scanner-processing small {
+  color: #bcd0c9;
+}
+
+.scanner-spinner {
+  color: #efca67;
+
+  animation:
+    scannerSpin 0.7s linear infinite;
+}
+
+.scanner-pro-card .helper {
+  text-align: center;
+}
+
+.scanner-error {
+  position: relative;
+  z-index: 10;
+}
+
+@keyframes laserScan {
+  from {
+    top: 12%;
+    opacity: 0.55;
+  }
+
+  to {
+    top: 87%;
+    opacity: 1;
+  }
+}
+
+@keyframes scannerSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 390px) {
+  .scanner-pro-card {
+    padding: 12px !important;
+  }
+
+  .qr-portal {
+    border-radius: 19px;
+  }
+
+  .qr-target {
+    inset: 15%;
+  }
+
+  .period-status-card {
+    grid-template-columns:
+      42px minmax(0, 1fr) auto;
+  }
+}
