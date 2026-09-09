@@ -1,0 +1,272 @@
+/*
+  Estructura móvil:
+  - Fondo completamente inmóvil
+  - Encabezado fijo
+  - Solamente se desplaza el contenido
+  - Scroll suave en Android y iPhone
+*/
+
+html {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: #03110d;
+}
+
+body {
+  position: fixed;
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+  min-width: 320px;
+  margin: 0;
+
+  overflow: hidden;
+  background: #03110d;
+
+  overscroll-behavior: none;
+  touch-action: manipulation;
+
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* Fondo independiente y completamente inmóvil */
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+
+  width: 100%;
+  height: 100%;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(0, 12, 9, 0.91),
+      rgba(2, 47, 35, 0.76) 46%,
+      rgba(0, 0, 0, 0.9)
+    ),
+    radial-gradient(
+      circle at 82% 12%,
+      rgba(216, 170, 60, 0.13),
+      transparent 30%
+    ),
+    url("/math-background.jpg");
+
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+
+  pointer-events: none;
+  transform: translateZ(0);
+}
+
+/* Capa principal por encima del fondo */
+
+#root {
+  position: relative;
+  z-index: 1;
+
+  width: 100%;
+  height: 100%;
+  min-width: 320px;
+
+  overflow: hidden;
+}
+
+/*
+  Pantallas internas.
+  El encabezado queda arriba y solamente
+  .page-content puede desplazarse.
+*/
+
+.app-shell {
+  position: fixed;
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+  height: 100dvh;
+  min-height: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  overflow: hidden;
+  background: transparent;
+}
+
+/* Encabezado inmóvil */
+
+.app-shell > header,
+.teacher-topbar {
+  position: relative;
+  z-index: 20;
+
+  flex: 0 0 auto;
+  width: 100%;
+
+  padding-top: max(
+    12px,
+    env(safe-area-inset-top)
+  );
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(1, 24, 17, 0.94),
+      rgba(0, 11, 8, 0.91)
+    );
+
+  border-bottom: 1px solid
+    rgba(216, 170, 60, 0.24);
+
+  box-shadow:
+    0 8px 26px rgba(0, 0, 0, 0.26),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.04);
+
+  -webkit-backdrop-filter:
+    blur(20px) saturate(150%);
+  backdrop-filter:
+    blur(20px) saturate(150%);
+
+  transform: translateZ(0);
+}
+
+/* Única sección desplazable */
+
+.app-shell > .page-content,
+.page-content {
+  position: relative;
+  z-index: 1;
+
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  overscroll-behavior-x: none;
+  overscroll-behavior-y: contain;
+
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+
+  padding-bottom: max(
+    28px,
+    calc(env(safe-area-inset-bottom) + 18px)
+  );
+
+  scrollbar-width: none;
+}
+
+/* Ocultar barra visual sin desactivar el scroll */
+
+.page-content::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+/*
+  La portada no utiliza el encabezado de la app,
+  así que toda ella puede desplazarse si el
+  teléfono tiene una pantalla pequeña.
+*/
+
+.access-page {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+
+  width: 100%;
+  height: 100%;
+  height: 100dvh;
+
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+
+  background: transparent;
+
+  scrollbar-width: none;
+}
+
+.access-page::-webkit-scrollbar {
+  display: none;
+}
+
+/* Evita movimientos laterales accidentales */
+
+.app-shell,
+.page-content,
+.access-page,
+.access-card,
+.scanner-card,
+.coin-form,
+.history-section {
+  max-width: 100%;
+}
+
+/* El diálogo permanece fijo sobre la pantalla */
+
+.dialog-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+}
+
+/* Ajustes específicos para teléfonos */
+
+@media (max-width: 600px) {
+  body::before {
+    background-position: 52% center;
+  }
+
+  .app-shell > .page-content {
+    padding-top: 14px;
+  }
+
+  .teacher-topbar {
+    min-height: 66px;
+  }
+}
+
+/* Respeta teléfonos con notch */
+
+@supports (
+  padding-top: env(safe-area-inset-top)
+) {
+  .app-shell > header,
+  .teacher-topbar {
+    padding-left: max(
+      14px,
+      env(safe-area-inset-left)
+    );
+
+    padding-right: max(
+      14px,
+      env(safe-area-inset-right)
+    );
+  }
+
+  .page-content {
+    padding-left: max(
+      14px,
+      env(safe-area-inset-left)
+    );
+
+    padding-right: max(
+      14px,
+      env(safe-area-inset-right)
+    );
+  }
+}
