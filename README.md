@@ -23,3 +23,7 @@ El código del maestro conduce al inicio de sesión real de Supabase. El QR cont
 ## Producción
 
 Ejecuta `npm run build`. La carpeta `dist` contiene la PWA lista para desplegar.
+
+## Publicación
+
+MathWallet PWA publicada mediante Vercel.
