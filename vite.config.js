@@ -10,32 +10,37 @@ export default defineConfig({
       registerType: 'autoUpdate',
 
       includeAssets: [
+        'logo.png',
+        'math-background.jpg',
         'favicon-32.png',
         'apple-touch-icon.png',
-        'logo.png',
-        'math-background.jpg'
+        'icon-192.png',
+        'icon-512.png',
+        'icon-maskable-512.png'
       ],
 
+      workbox: {
+        cleanupOutdatedCaches: true,
+        skipWaiting: true,
+        clientsClaim: true,
+        navigateFallback: '/index.html'
+      },
+
       manifest: {
-        id: '/',
         name: 'MathWallet',
         short_name: 'MathWallet',
 
         description:
-          'Billetera escolar para administrar y consultar MathCoins.',
+          'Billetera escolar de MathCoins',
 
-        theme_color: '#032219',
+        theme_color: '#063f2f',
         background_color: '#03110d',
 
         display: 'standalone',
         orientation: 'portrait',
+
         start_url: '/',
         scope: '/',
-
-        categories: [
-          'education',
-          'productivity'
-        ],
 
         icons: [
           {
@@ -56,16 +61,6 @@ export default defineConfig({
             type: 'image/png',
             purpose: 'maskable'
           }
-        ]
-      },
-
-      workbox: {
-        cleanupOutdatedCaches: true,
-
-        navigateFallback: '/index.html',
-
-        globPatterns: [
-          '**/*.{js,css,html,png,jpg,jpeg,svg,webp,woff2}'
         ]
       }
     })
