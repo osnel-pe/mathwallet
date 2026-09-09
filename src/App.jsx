@@ -173,11 +173,13 @@ useEffect(() => {
     }
 
     go(destination)
+    return true
   } catch (error) {
     showNotice(
       error.message ||
       'No encontramos un alumno con ese ID.'
     )
+    return false
   } finally {
     setLoading(false)
   }
@@ -583,11 +585,24 @@ function StudentProfile({
 }
 
 function CoinForm({ onMove, disabled }) {
-  const [amount, setAmount] = useState(5); const [cause, setCause] = useState('')
-  return <section className="coin-form"><div className="section-heading"><div><span className="eyebrow">MOVIMIENTO</span><h2>Modificar MathCoins</h2></div></div>
-    <div className="amounts">{[5,10,20,50,100].map((n) => <button className={amount === n ? 'active' : ''} onClick={() => setAmount(n)} key={n}>{n}</button>)}</div>
-    <input value={cause} onChange={(e) => setCause(e.target.value)} placeholder="Causa (opcional)" />
-    <div className="move-actions"><button className="subtract" disabled={disabled} onClick={() => onMove(-amount, cause)}>− Restar</button><button className="add" disabled={disabled} onClick={() => onMove(amount, cause)}>+ Sumar</button></div>
+  const [shortcutAmount, setShortcutAmount] = useState(5)
+  const [customAmount, setCustomAmount] = useState('')
+  const [cause, setCause] = useState('')
+  const amount = customAmount === '' ? shortcutAmount : Number(customAmount)
+  const validAmount = Number.isInteger(amount) && amount > 0 && amount <= 100000
+
+  function chooseShortcut(value) {
+    setShortcutAmount(value)
+    setCustomAmount('')
+  }
+
+  return <section className="coin-form">
+    <div className="section-heading compact-heading"><div><span className="eyebrow">MOVIMIENTO</span><h2>Modificar MathCoins</h2></div></div>
+    <div className="amounts">{[5,10,20,50,100].map((value) => <button type="button" className={customAmount === '' && shortcutAmount === value ? 'active' : ''} onClick={() => chooseShortcut(value)} key={value}>{value}</button>)}</div>
+    <label className="custom-amount-field"><span>Cantidad personalizada</span><input type="number" inputMode="numeric" min="1" max="100000" step="1" value={customAmount} onChange={(event) => setCustomAmount(event.target.value.replace(/[^0-9]/g, '').slice(0,6))} placeholder={`Usar atajo: ${shortcutAmount}`} /></label>
+    <input value={cause} onChange={(event) => setCause(event.target.value)} placeholder="Causa (opcional)" maxLength={120} />
+    <div className="move-actions"><button type="button" className="subtract" disabled={disabled || !validAmount} onClick={() => onMove(-amount, cause)}>− Restar {validAmount ? amount : ''}</button><button type="button" className="add" disabled={disabled || !validAmount} onClick={() => onMove(amount, cause)}>+ Sumar {validAmount ? amount : ''}</button></div>
+    {customAmount !== '' && !validAmount && <small className="amount-error">Escribe una cantidad entera entre 1 y 100000.</small>}
   </section>
 }
 
