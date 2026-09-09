@@ -1,0 +1,296 @@
+:root{--green:#07553f;--green2:#18a579;--ink:#f7fbf9;--gold:#d8aa3c;--line:rgba(255,255,255,.16);--muted:#b8c9c3;background:#03110d;color-scheme:dark}
+body{color:var(--ink);background:#03110d url('/math-background.jpg') center/cover fixed no-repeat}
+body::before{content:"";position:fixed;inset:0;z-index:-1;background:linear-gradient(145deg,rgba(0,12,9,.92),rgba(2,47,35,.78) 46%,rgba(0,0,0,.9)),radial-gradient(circle at 82% 12%,rgba(216,170,60,.13),transparent 30%)}
+.access-page,.app-shell{background:transparent}
+.access-card,.scanner-card,.coin-form,.history-section,.metric,.scan-action,.menu-grid button,.student-list button,.ranking-list article,.ranking-link{background:linear-gradient(145deg,rgba(13,48,38,.66),rgba(2,15,11,.58));border:1px solid rgba(255,255,255,.17);box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 20px 55px rgba(0,0,0,.3);-webkit-backdrop-filter:blur(18px) saturate(145%);backdrop-filter:blur(18px) saturate(145%)}
+.access-card{box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 30px 90px rgba(0,0,0,.55);border-color:rgba(216,170,60,.28)}
+.access-card h1,.app-shell h1,.section-heading h2,.profile-hero h2,.student-list strong,.ranking-list strong,.menu-grid strong,.scan-action strong{color:#fff}
+.access-card>p,.helper,.scan-action small,.menu-grid small,.metric small,.profile-hero p,.student-list small,.ranking-list small,.history-copy small{color:var(--muted)}
+.eyebrow{color:#e5bd5c}.brand-mark,.coin-orbit{background:linear-gradient(145deg,#0a7658,#043d2e);border:1px solid rgba(216,170,60,.5);color:#fff;box-shadow:0 15px 35px rgba(0,0,0,.36),inset 0 1px 0 rgba(255,255,255,.22)}
+.access-card input,.coin-form input,.manual-id input,.search-box{background:rgba(0,0,0,.28);border-color:rgba(255,255,255,.17);color:#fff;box-shadow:inset 0 1px 10px rgba(0,0,0,.2)}
+input::placeholder{color:#8ca098}.primary{background:linear-gradient(135deg,#0b7658,#07503d);border:1px solid rgba(255,255,255,.15);box-shadow:0 12px 25px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.18)}
+.primary:hover,.scan-action:hover,.menu-grid button:hover{transform:translateY(-2px);filter:brightness(1.08)}
+.primary,.scan-action,.menu-grid button{transition:transform .2s ease,filter .2s ease,border-color .2s ease}
+.app-shell>header{background:rgba(0,18,13,.7);border-color:rgba(216,170,60,.22);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px)}
+.icon-button,.mini-logo{background:rgba(255,255,255,.09);color:#e8bd55;border:1px solid rgba(255,255,255,.13)}
+.welcome,.balance-card{background:linear-gradient(135deg,rgba(4,86,63,.94),rgba(1,25,18,.92));border:1px solid rgba(216,170,60,.35);box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 22px 50px rgba(0,0,0,.35)}
+.welcome .eyebrow{color:#f1cc70}.coin-orbit{color:#f1c85f}.metric span,.menu-grid svg,.ranking-link svg,.student-list button>b,.ranking-list article>b{color:#e5bd5c}
+.scan-action>span{background:linear-gradient(145deg,#e9c765,#b9851d);color:#102019;box-shadow:0 9px 24px rgba(0,0,0,.3)}
+.amounts button,.chips button,.tabs button{background:rgba(255,255,255,.07);color:#e7efec;border-color:rgba(255,255,255,.14)}
+.amounts button.active,.chips button.active,.tabs button.active{background:linear-gradient(135deg,#0b7658,#07503d);border-color:rgba(216,170,60,.55);box-shadow:inset 0 1px 0 rgba(255,255,255,.16)}
+.profile-avatar,.avatar{background:linear-gradient(145deg,rgba(27,151,112,.32),rgba(216,170,60,.18));color:#f4ce73;border:1px solid rgba(216,170,60,.35)}
+.history-row{border-color:rgba(255,255,255,.09)}.history-copy strong{color:#f5f9f7}.empty{color:var(--muted)}
+.ranking-list article.is-me{background:linear-gradient(145deg,rgba(92,69,12,.45),rgba(10,38,29,.7));border-color:#d8aa3c}
+.setup-note{background:rgba(216,170,60,.13);color:#f1d58e;border:1px solid rgba(216,170,60,.25)}
+.toast{background:rgba(2,24,17,.92);border:1px solid rgba(216,170,60,.45);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px)}
+@media(max-width:600px){body{background-position:52% center}.access-card{background:linear-gradient(145deg,rgba(9,42,32,.75),rgba(0,10,7,.7))}}
+
+/* Portada centrada */
+
+.access-card {
+  text-align: center;
+}
+
+.access-card form {
+  text-align: left;
+}
+
+.access-card .brand-mark {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.logo-mark {
+  width: 82px;
+  height: 82px;
+  padding: 4px;
+  overflow: hidden;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #f0cc70, #9d711b);
+  border: 1px solid rgba(255, 231, 165, 0.85);
+}
+
+.logo-mark img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  border-radius: 50%;
+  background: #073d2e;
+}
+
+.teacher-login-card .back-link {
+  position: absolute;
+  top: 24px;
+  left: 24px;
+}
+
+.password-field {
+  position: relative;
+}
+
+.password-field input {
+  padding-right: 54px;
+}
+
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 7px;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  transform: translateY(-50%);
+  color: #e5bd5c;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.password-toggle:hover {
+  background: rgba(216, 170, 60, 0.16);
+}
+
+.login-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  margin-top: 8px;
+  padding: 13px 14px;
+  border: 1px solid rgba(255, 117, 130, 0.38);
+  border-radius: 14px;
+  color: #ffd7dc;
+  background: rgba(128, 20, 37, 0.28);
+  backdrop-filter: blur(12px);
+}
+
+.login-error svg {
+  flex: none;
+  margin-top: 2px;
+  color: #ff8c9a;
+}
+
+.login-error div {
+  display: grid;
+  gap: 3px;
+}
+
+.login-error strong {
+  font-size: 0.88rem;
+}
+
+.login-error span {
+  color: #eec8cd;
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+/* Confirmación para cerrar sesión */
+
+.dialog-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  padding: 20px;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 8, 6, 0.76);
+  backdrop-filter: blur(10px);
+  animation: dialogFade 0.2s ease;
+}
+
+.confirm-dialog {
+  width: min(100%, 390px);
+  padding: 28px;
+  text-align: center;
+  border: 1px solid rgba(216, 170, 60, 0.42);
+  border-radius: 25px;
+  color: #fff;
+  background: linear-gradient(
+    145deg,
+    rgba(10, 57, 42, 0.95),
+    rgba(1, 19, 14, 0.97)
+  );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    0 30px 90px rgba(0, 0, 0, 0.65);
+}
+
+.confirm-icon {
+  width: 60px;
+  height: 60px;
+  margin: 0 auto 17px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(216, 170, 60, 0.5);
+  border-radius: 19px;
+  color: #edc765;
+  background: rgba(216, 170, 60, 0.12);
+}
+
+.confirm-dialog h2 {
+  margin: 0 0 9px;
+  font-size: 1.35rem;
+}
+
+.confirm-dialog p {
+  margin: 0;
+  color: #b8c9c3;
+  line-height: 1.55;
+}
+
+.confirm-actions {
+  display: grid;
+  grid-template-columns: 1fr 1.25fr;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.confirm-actions button {
+  min-height: 48px;
+  border-radius: 14px;
+  font-weight: 800;
+}
+
+.cancel-button {
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #fff;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.logout-button {
+  border: 1px solid rgba(255, 137, 148, 0.3);
+  color: #fff;
+  background: linear-gradient(135deg, #a9273b, #7e1728);
+}
+
+/* Escáner */
+
+.scan-success {
+  position: absolute;
+  left: 50%;
+  bottom: 22px;
+  z-index: 3;
+  transform: translateX(-50%);
+  padding: 10px 16px;
+  border: 1px solid rgba(216, 170, 60, 0.5);
+  border-radius: 999px;
+  color: #fff;
+  background: rgba(4, 85, 63, 0.9);
+  backdrop-filter: blur(12px);
+  white-space: nowrap;
+  font-weight: 800;
+}
+
+.scanner-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin-top: 14px;
+  padding: 12px 13px;
+  border: 1px solid rgba(255, 137, 148, 0.33);
+  border-radius: 13px;
+  color: #ffd7dc;
+  background: rgba(128, 20, 37, 0.25);
+}
+
+.scanner-error svg {
+  flex: none;
+}
+
+/* Recuperación de sesión */
+
+.session-loader {
+  min-height: 100vh;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 14px;
+  color: #fff;
+  background:
+    linear-gradient(rgba(0, 15, 11, 0.82), rgba(0, 7, 5, 0.92)),
+    url('/math-background.jpg') center/cover fixed;
+}
+
+.session-loader img {
+  width: 82px;
+  height: 82px;
+  padding: 4px;
+  object-fit: cover;
+  border: 2px solid #d8aa3c;
+  border-radius: 50%;
+  background: #063f2f;
+}
+
+.loader-ring {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(255, 255, 255, 0.18);
+  border-top-color: #d8aa3c;
+  border-radius: 50%;
+  animation: loaderSpin 0.8s linear infinite;
+}
+
+.session-loader p {
+  margin: 0;
+  color: #c6d4cf;
+  font-size: 0.88rem;
+}
+
+@keyframes loaderSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes dialogFade {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
