@@ -150,19 +150,6 @@ useEffect(() => {
 ) {
   setLoading(true)
 
-  if (destination === 'teacher-student') {
-  const {
-    data: { session }
-  } = await supabase.auth.getSession()
-
-  if (!session?.user) {
-    setLoading(false)
-    setRole('teacher')
-    go('teacher-login')
-    return false
-  }
-}
-
   try {
     const foundStudent = await obtenerAlumno(id)
 
@@ -227,41 +214,6 @@ useEffect(() => {
   )
 }
 
-const protectedTeacherScreen =
-  [
-    'teacher-home',
-    'teacher-scan',
-    'teacher-student',
-    'groups'
-  ].includes(screen) ||
-  (
-    screen === 'ranking' &&
-    role === 'teacher'
-  )
-
-if (
-  protectedTeacherScreen &&
-  (
-    role !== 'teacher' ||
-    !user
-  )
-) {
-  return (
-    <TeacherLogin
-      onBack={() => {
-        setRole(null)
-        go('access')
-      }}
-      onSuccess={(authenticatedUser) => {
-        setUser(authenticatedUser)
-        setRole('teacher')
-        loadStudents()
-        go('teacher-home')
-      }}
-    />
-  )
-}
-
   if (screen === 'access') return <Access onEnter={(code) => {
     if (code === CODIGO_MAESTRO) { setRole('teacher'); go('teacher-login') }
     else if (code === CODIGO_ALUMNO) { setRole('student'); go('student-scan') }
@@ -281,15 +233,7 @@ if (
       />
     )
   }
-  if (screen === 'student-scan') return <Shell title="Acceso de alumno" onBack={() => go('access')}>
-    <ScannerQR
-      title="Escanea tu tarjeta"
-      allowManual={false}
-      onRead={(id) =>
-        openStudent(id, 'student-profile')
-      }
-    />      {notice && <Toast text={notice} />
-    }</Shell>
+  if (screen === 'student-scan') return <Shell title="Acceso de alumno" onBack={() => go('access')}><ScannerQR title="Escanea tu tarjeta" onRead={(id) => openStudent(id, 'student-profile')} />{notice && <Toast text={notice} />}</Shell>
   if (screen === 'teacher-home') {
     return (
       <>
@@ -314,13 +258,7 @@ if (
       </>
     )
   }
-  if (screen === 'teacher-scan') return <Shell title="Escáner del maestro" onBack={() => go('teacher-home')}><ScannerQR
-    title="Escanear alumno"
-    allowManual={true}
-    onRead={(id) =>
-      openStudent(id, 'teacher-student')
-    }
-  /> {notice && <Toast text={notice} />}</Shell>
+  if (screen === 'teacher-scan') return <Shell title="Escáner del maestro" onBack={() => go('teacher-home')}><ScannerQR onRead={(id) => openStudent(id, 'teacher-student')} />{notice && <Toast text={notice} />}</Shell>
   if (screen === 'groups') return <Groups students={students} onBack={() => go('teacher-home')} onOpen={(id) => openStudent(id, 'teacher-student')} />
   if (screen === 'ranking') {
   return (
