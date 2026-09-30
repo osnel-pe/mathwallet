@@ -20,6 +20,8 @@ import {
 
 import * as XLSX from 'xlsx'
 
+import MathyGame from './components/MathyGame'
+import './mathy.css'
 import ScannerQR from './components/ScannerQR'
 import History from './components/History'
 import TeacherDashboard from './components/TeacherDashboard'
@@ -731,10 +733,36 @@ export default function App() {
     )
   }
 
+  if (screen === 'mathy-game' && role === 'student' && student) {
+  return (
+    <MathyGame
+      key={student.id}
+      student={student}
+      onBack={() => {
+        go('student-profile')
+        // Recupera el perfil y el historial al regresar, incluso si salió
+        // mientras un premio se estaba guardando en el servidor.
+        openStudent(student.id, 'student-profile')
+      }}
+      onStudentUpdated={(updatedStudent) => {
+        setStudent(updatedStudent)
+        setStudents((current) =>
+          current.map((item) =>
+            item.id === updatedStudent.id
+              ? updatedStudent
+              : item
+          )
+        )
+      }}
+    />
+  )
+}
+
   if (screen === 'student-profile') {
     return (
       <>
         <StudentProfile
+          onPlay={() => go('mathy-game')}
           student={student}
           movements={movements}
           period={period}
@@ -1183,6 +1211,7 @@ function StudentProfile({
   onMove,
   onRanking,
   onLogout,
+  onPlay,
   notice
 }) {
   if (!student) return null
@@ -1198,6 +1227,7 @@ function StudentProfile({
       walletHeader={studentHeader}
       onLogout={onLogout}
     >
+
       <section className="profile-hero">
         <span className="profile-avatar">
           {student.nombre?.[0]}
@@ -1250,6 +1280,20 @@ function StudentProfile({
           </strong>
         </div>
       </section>
+
+            {studentHeader && onPlay && (
+        <button
+          type="button"
+          className="main-dashboard-action goals-action"
+          onClick={onPlay}
+        >
+          <span className="dashboard-action-icon" aria-hidden="true">🎮</span>
+          <span className="dashboard-action-copy">
+            <strong>Jugar con Mathy</strong>
+            <small>100 retos · Gana MathCoins y continúa tu aventura</small>
+          </span>
+        </button>
+      )}
 
       {teacher && (
         <CoinForm
