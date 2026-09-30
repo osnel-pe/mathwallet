@@ -15,3 +15,728 @@
 @keyframes mathy-jump{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-12px) rotate(3deg)}}
 @media(max-width:540px){.mathy-intro{gap:14px}.mathy-character{flex-basis:94px;border-radius:18px}.mathy-character img{height:180px}.mathy-intro p{font-size:13px}.mathy-card{padding:18px}.mathy-worlds{grid-template-columns:repeat(5,1fr)}.mathy-worlds span{max-width:46px;width:100%;justify-self:center}.mathy-topbar strong{font-size:14px}}
 @media(prefers-reduced-motion:reduce){.mathy-celebrate{animation:none}}
+
+/* PANTALLA Y SCROLL */
+main.app-shell.mathy-game {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 100;
+  display: block !important;
+  width: 100% !important;
+  max-width: none !important;
+  height: 100dvh !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+  color: #f0fff9;
+  background:
+    radial-gradient(ellipse at 12% 5%, #12675488, transparent 40%),
+    radial-gradient(ellipse at 95% 45%, #49389b66, transparent 45%),
+    radial-gradient(ellipse at 30% 95%, #087c8544, transparent 40%),
+    #071c22;
+}
+
+.mathy-game,
+.mathy-game * {
+  box-sizing: border-box;
+}
+
+.mathy-game::-webkit-scrollbar {
+  width: 7px;
+}
+
+.mathy-game::-webkit-scrollbar-thumb {
+  border-radius: 20px;
+  background: #43d8b0;
+}
+
+/* BARRA SUPERIOR */
+.mathy-game .mathy-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  padding: 14px max(16px, calc((100% - 940px) / 2));
+  background: #071c22ed;
+  border-bottom: 1px solid #67e9c32b;
+  backdrop-filter: blur(16px);
+}
+
+.mathy-topbar strong {
+  color: #83ffdc;
+  letter-spacing: .02em;
+}
+
+.mathy-game .mathy-content {
+  width: 100%;
+  max-width: 940px;
+  margin: auto;
+  padding: 28px 20px;
+  padding-bottom: calc(60px + env(safe-area-inset-bottom));
+}
+
+/* ESCENARIO DE MATHY */
+.mathy-game .mathy-intro {
+  position: relative;
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr);
+  align-items: center;
+  gap: 30px;
+  isolation: isolate;
+  padding: 28px;
+  border: 1px solid #73ffd43b;
+  border-radius: 30px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 10% 30%, #38e7b531, transparent 55%),
+    linear-gradient(135deg, #15483d, #122a40 70%, #322a58);
+  box-shadow: 0 24px 70px #0004;
+}
+
+.mathy-intro::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: .25;
+  background-image:
+    linear-gradient(#8df5d51c 1px, transparent 1px),
+    linear-gradient(90deg, #8df5d51c 1px, transparent 1px);
+  background-size: 38px 38px;
+  transform: perspective(400px) rotateX(25deg) scale(1.3);
+}
+
+.mathy-intro::after {
+  content: "✦";
+  position: absolute;
+  right: 22px;
+  top: 20px;
+  color: #ffc95c;
+  font-size: 40px;
+  animation: mathy-star 4s ease-in-out infinite;
+}
+
+.mathy-game .mathy-character {
+  position: relative;
+  width: 100%;
+  padding: 12px;
+  border: 3px solid #7fffd8;
+  border-radius: 100px 100px 24px 24px;
+  overflow: hidden;
+  background: #fff;
+  box-shadow:
+    0 0 0 8px #75ffd30b,
+    0 0 45px #43e4b52b,
+    0 16px 35px #0005;
+  animation: mathy-float 4s ease-in-out infinite;
+}
+
+.mathy-game .mathy-character img {
+  width: 100%;
+  height: 270px;
+  object-fit: contain;
+}
+
+.mathy-game .mathy-intro h1 {
+  margin: 16px 0;
+  font-size: clamp(28px, 4vw, 46px);
+  font-weight: 900;
+  line-height: 1.08;
+  letter-spacing: -.04em;
+  color: #fff;
+}
+
+.mathy-game .mathy-intro p {
+  max-width: 480px;
+  color: #c6e6df;
+  line-height: 1.65;
+}
+
+.mathy-game .mathy-tag {
+  display: inline-block;
+  padding: 8px 12px;
+  border: 1px solid #83ffdc40;
+  border-radius: 30px;
+  background: #071d2580;
+  color: #83ffdc;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .06em;
+}
+
+/* TARJETAS Y ENTRADA DE CADA RETO */
+.mathy-game .mathy-card {
+  position: relative;
+  padding: 26px;
+  border: 1px solid #85fbd32b;
+  border-radius: 26px;
+  background: linear-gradient(145deg, #153b3c, #112832);
+  box-shadow: 0 18px 40px #0003;
+}
+
+.mathy-game .mathy-challenge {
+  border-top: 3px solid #60f3c8;
+  animation: mathy-reveal .4s ease-out both;
+}
+
+.mathy-game .mathy-card h2 {
+  font-size: clamp(21px, 3vw, 28px);
+  font-weight: 850;
+  line-height: 1.3;
+  letter-spacing: -.025em;
+}
+
+.mathy-game .mathy-challenge > p {
+  margin: 18px 0;
+  font-size: 18px;
+  line-height: 1.65;
+  color: #e3f8f1;
+}
+
+.mathy-game .mathy-reward {
+  padding: 8px 14px;
+  border: 1px solid #ffd06b55;
+  border-radius: 24px;
+  background: #ffcc5815;
+  color: #ffe094;
+  font-weight: 800;
+}
+
+/* BOTONES CON RELIEVE */
+.mathy-game button {
+  min-height: 48px;
+  border: 1px solid #87f8da50;
+  border-radius: 16px;
+  background: linear-gradient(145deg, #1d5a50, #153e40);
+  box-shadow: 0 5px 0 #061c22;
+  font-weight: 750;
+  transition:
+    transform .18s ease,
+    box-shadow .18s ease,
+    border-color .18s ease,
+    background .18s ease;
+}
+
+.mathy-game button:active:not(:disabled) {
+  transform: translateY(4px);
+  box-shadow: 0 1px 0 #061c22;
+}
+
+.mathy-game button:focus-visible {
+  outline: 3px solid #ffe094;
+  outline-offset: 5px;
+}
+
+.mathy-game button:disabled {
+  opacity: .5;
+  cursor: default;
+}
+
+/* COMENZAR Y COMPROBAR */
+.mathy-game .mathy-card > button,
+.mathy-game .mathy-actions button:last-child {
+  padding: 16px 24px;
+  border: 1px solid #a4ffe4;
+  background: linear-gradient(135deg, #76ffd4, #35d5a9);
+  color: #082e29;
+  box-shadow: 0 5px 0 #167864, 0 10px 30px #35d5a920;
+  font-size: 17px;
+  font-weight: 900;
+}
+
+.mathy-game .mathy-card > button {
+  width: 100%;
+  margin-top: 12px;
+}
+
+/* RESPUESTAS, FICHAS Y TESOROS */
+.mathy-game .mathy-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin: 26px 0;
+}
+
+.mathy-game .mathy-options button {
+  position: relative;
+  min-height: 74px;
+  padding: 18px;
+  font-size: 21px;
+  background: linear-gradient(145deg, #20514f, #173744);
+  border: 1px solid #77e4cc44;
+}
+
+.mathy-game .mathy-options button.mathy-selected {
+  color: #12372b;
+  border-color: #ffe39b;
+  background: linear-gradient(135deg, #ffe39b, #ffc451);
+  box-shadow: 0 5px 0 #a27120, 0 0 26px #ffc45125;
+  transform: translateY(-2px);
+}
+
+.mathy-game .mathy-selection {
+  padding: 18px;
+  border: 1px dashed #70dcbc66;
+  border-radius: 16px;
+  background: #071e27;
+  color: #a6ffe4;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.mathy-game .mathy-actions {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 14px;
+  margin-top: 20px;
+}
+
+/* PORTALES */
+.mathy-game .mathy-paths button {
+  min-height: 140px;
+  flex-direction: column;
+  gap: 12px;
+  border-radius: 70px 70px 18px 18px;
+  border: 2px solid #ac94ff80;
+  background:
+    radial-gradient(ellipse at center, #8065ed44, transparent 70%),
+    linear-gradient(180deg, #332c61, #142c3a);
+  box-shadow:
+    inset 0 0 28px #aa86ff25,
+    0 5px 0 #091824;
+}
+
+.mathy-game .mathy-paths span {
+  font-size: 40px;
+}
+
+/* PROGRESO */
+.mathy-game .mathy-progress {
+  background: linear-gradient(120deg, #123d37, #132d3b);
+}
+
+.mathy-game .mathy-progress strong {
+  font-size: 20px;
+  color: #fff;
+}
+
+.mathy-game .mathy-progress div > span {
+  color: #ffe094;
+  font-weight: 800;
+}
+
+.mathy-game .mathy-progress progress {
+  width: 100%;
+  height: 14px;
+  margin: 18px 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 20px;
+  background: #071e27;
+  accent-color: #61efbf;
+}
+
+.mathy-progress progress::-webkit-progress-bar {
+  border-radius: 20px;
+  background: #071e27;
+}
+
+.mathy-progress progress::-webkit-progress-value {
+  border-radius: 20px;
+  background: linear-gradient(90deg, #30cfa6, #83ffda);
+}
+
+.mathy-progress progress::-moz-progress-bar {
+  border-radius: 20px;
+  background: linear-gradient(90deg, #30cfa6, #83ffda);
+}
+
+/* MENSAJES Y MAPA DE MUNDOS */
+.mathy-game .mathy-message:not(:empty) {
+  padding: 16px 20px;
+  border-left: 4px solid #ffd16c;
+  border-radius: 14px;
+  background: #ffd16c12;
+  color: #ffe5aa;
+  animation: mathy-reveal .25s ease-out;
+}
+
+.mathy-game .mathy-worlds {
+  gap: 12px;
+  padding: 20px 0;
+}
+
+.mathy-game .mathy-worlds span {
+  border-radius: 18px;
+  border: 1px solid #86b4bf44;
+  background: linear-gradient(145deg, #243a4a, #122830);
+  box-shadow: 0 5px 0 #061c22;
+  font-weight: 850;
+}
+
+.mathy-game .mathy-worlds .mathy-world-done {
+  color: #11392a;
+  border-color: #a3ffe0;
+  background: linear-gradient(135deg, #8effd4, #35c69c);
+}
+
+.mathy-game .mathy-worlds .mathy-world-current {
+  color: #ffe49b;
+  border-color: #ffda79;
+  background: linear-gradient(145deg, #574227, #293b3d);
+  box-shadow: 0 5px 0 #061c22, 0 0 22px #ffd16c25;
+}
+
+.mathy-game .mathy-finish {
+  padding: 40px 24px;
+  border-color: #ffd16c80;
+  background:
+    radial-gradient(circle at top, #ffd16c22, transparent 65%),
+    #153b3c;
+}
+
+/* PREMIOS Y CONFETI */
+.mathy-game .mathy-prize {
+  z-index: 2;
+  bottom: 18px;
+  color: #183426;
+  background: #ffe094;
+  animation: mathy-prize-pop .4s ease-out both;
+}
+
+.mathy-game .mathy-celebrate {
+  animation: mathy-victory .55s ease-in-out 3;
+}
+
+.mathy-confetti {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.mathy-confetti i {
+  position: absolute;
+  top: -30px;
+  left: calc(var(--i) * 5.2%);
+  width: 10px;
+  height: 18px;
+  border-radius: 3px;
+  background: #76ffd4;
+  animation: mathy-confetti-fall 1.5s ease-in both;
+  animation-delay: calc(var(--i) * 0.025s);
+}
+
+.mathy-confetti i:nth-child(3n) {
+  background: #ffd16c;
+}
+
+.mathy-confetti i:nth-child(3n + 1) {
+  background: #b49bff;
+}
+
+@keyframes mathy-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-7px); }
+}
+
+@keyframes mathy-star {
+  0%, 100% { opacity: .5; transform: rotate(0) scale(.85); }
+  50% { opacity: 1; transform: rotate(25deg) scale(1.1); }
+}
+
+@keyframes mathy-reveal {
+  from { opacity: 0; transform: translateY(16px) scale(.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes mathy-victory {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  50% { transform: translateY(-14px) rotate(3deg); }
+}
+
+@keyframes mathy-prize-pop {
+  from { opacity: 0; transform: scale(.7); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes mathy-confetti-fall {
+  to { transform: translateY(105dvh) rotate(540deg); opacity: 0; }
+}
+
+/* CELULARES */
+@media (max-width: 600px) {
+  .mathy-game .mathy-content {
+    padding: 18px 14px;
+    padding-bottom: calc(50px + env(safe-area-inset-bottom));
+  }
+
+  .mathy-game .mathy-intro {
+    grid-template-columns: 110px minmax(0, 1fr);
+    gap: 16px;
+    padding: 20px 16px;
+    border-radius: 24px;
+  }
+
+  .mathy-game .mathy-character {
+    padding: 7px;
+  }
+
+  .mathy-game .mathy-character img {
+    height: 205px;
+  }
+
+  .mathy-game .mathy-intro h1 {
+    font-size: 27px;
+  }
+
+  .mathy-game .mathy-intro p {
+    font-size: 13px;
+  }
+
+  .mathy-game .mathy-tag {
+    font-size: 10px;
+    padding: 7px 9px;
+  }
+
+  .mathy-game .mathy-card {
+    padding: 21px 18px;
+    border-radius: 22px;
+  }
+
+  .mathy-game .mathy-options {
+    gap: 12px;
+  }
+
+  .mathy-game .mathy-options button {
+    padding: 14px 10px;
+    font-size: 18px;
+  }
+
+  .mathy-game .mathy-worlds {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .mathy-game .mathy-worlds span {
+    max-width: 52px;
+  }
+}
+
+@media (hover: hover) {
+  .mathy-game button:hover:not(:disabled) {
+    transform: translateY(-3px);
+    border-color: #b0ffe6;
+    box-shadow: 0 8px 0 #061c22, 0 12px 24px #0003;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mathy-game *,
+  .mathy-game *::before,
+  .mathy-game *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .mathy-confetti {
+    display: none;
+  }
+}
+
+/* ENCABEZADO: LOGO CENTRADO */
+.mathy-game .mathy-topbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  min-height: 78px;
+  padding: 12px 20px;
+  background: #081f27f5;
+  border-bottom: 1px solid #73ffd430;
+  box-shadow: 0 8px 24px #0002;
+}
+
+.mathy-game .mathy-header-logo {
+  display: block;
+  width: 104px;
+  height: 52px;
+  object-fit: contain;
+  justify-self: center;
+}
+
+.mathy-game .mathy-header-label {
+  justify-self: end;
+  color: #8affdc;
+  font-size: 15px;
+  font-weight: 850;
+  letter-spacing: .03em;
+}
+
+/* REGRESO INTEGRADO EN LA BARRA */
+.mathy-game button.mathy-back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  justify-self: start;
+  gap: 8px;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid #8affdc25;
+  border-radius: 12px;
+  background: #8affdc0b;
+  color: #dffff3;
+  box-shadow: none;
+  font-size: 14px;
+}
+
+.mathy-game .mathy-back span:first-child {
+  font-size: 30px;
+  line-height: 20px;
+}
+
+.mathy-game button.mathy-back:hover:not(:disabled),
+.mathy-game button.mathy-back:active:not(:disabled) {
+  transform: none;
+  background: #8affdc18;
+  border-color: #8affdc60;
+  box-shadow: none;
+}
+
+/* AVISOS TEMPORALES CENTRADOS */
+.mathy-game button.mathy-toast-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  margin: 0;
+  padding: 24px;
+  overflow-y: auto;
+  border: 0;
+  border-radius: 0;
+  background: #031018bb;
+  backdrop-filter: blur(8px);
+  color: #f2fff9;
+  box-shadow: none;
+  cursor: pointer;
+  text-align: center;
+  transform: none;
+  touch-action: pan-y;
+}
+
+.mathy-game button.mathy-toast-overlay:hover:not(:disabled),
+.mathy-game button.mathy-toast-overlay:active:not(:disabled) {
+  background: #031018bb;
+  border: 0;
+  box-shadow: none;
+  transform: none;
+}
+
+.mathy-toast-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  width: min(100%, 440px);
+  padding: 30px 24px;
+  border: 1px solid #94ffdb70;
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at top, #5af0be24, transparent 65%),
+    linear-gradient(145deg, #174839, #102a38);
+  box-shadow:
+    0 24px 90px #0008,
+    0 0 40px #5af0be12;
+  animation: mathy-toast-enter .25s ease-out both;
+}
+
+.mathy-toast-icon {
+  display: grid;
+  place-items: center;
+  width: 76px;
+  height: 76px;
+  border: 1px solid #ffe09455;
+  border-radius: 24px;
+  background: #ffe09412;
+  font-size: 42px;
+}
+
+.mathy-toast-text {
+  display: block;
+  font-size: clamp(17px, 4vw, 21px);
+  font-weight: 700;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.mathy-toast-hint {
+  color: #abd5c9;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+@keyframes mathy-toast-enter {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(.94);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 480px) {
+  .mathy-game .mathy-topbar {
+    gap: 8px;
+    padding: 10px 14px;
+    min-height: 72px;
+  }
+
+  .mathy-game .mathy-header-logo {
+    width: 90px;
+    height: 48px;
+  }
+
+  .mathy-game button.mathy-back {
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+
+  .mathy-game .mathy-header-label {
+    font-size: 13px;
+  }
+
+  .mathy-toast-card {
+    padding: 26px 20px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mathy-toast-card {
+    animation: none;
+  }
+}
+
+.mathy-game .mathy-header-logo {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  object-fit: contain;
+  padding: 5px;
+  background: #fff;
+  border: 2px solid #83ffdc;
+  box-shadow: 0 0 15px #43d8b030;
+  justify-self: center;
+}

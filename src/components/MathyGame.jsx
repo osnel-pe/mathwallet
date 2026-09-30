@@ -39,9 +39,19 @@ export default function MathyGame({ student, onBack, onStudentUpdated }) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
 }, [student.id])
 
+useEffect(() => {
+  if (!message) return
+
+  const timer = setTimeout(() => {
+    setMessage('')
+  }, 5000)
+
+  return () => clearTimeout(timer)
+}, [message])
+
   useEffect(() => {
     if (!celebrate) return
-    const timer = setTimeout(() => setCelebrate(false), 1600)
+const timer = setTimeout(() => setCelebrate(false), 2200)
     return () => clearTimeout(timer)
   }, [celebrate])
 
@@ -85,9 +95,16 @@ export default function MathyGame({ student, onBack, onStudentUpdated }) {
       if (result.correcto) {
         sync(result.estado)
         setCelebrate(!result.ya_resuelto)
-        setMessage(result.ya_resuelto
-          ? 'Este reto ya estaba guardado. Continuamos donde te quedaste.'
-          : `¡Lo lograste! +${result.premio} MathCoins. ${result.explicacion}`)
+        setMessage(
+          result.ya_resuelto
+            ? 'Este reto ya estaba guardado. Continuamos donde te quedaste.'
+            : [
+                '¡Lo lograste!',
+                `+${result.premio} MathCoins`,
+                `Acumulado del período: ${result.estado.saldo_acumulado} MC`,
+                result.explicacion
+              ].filter(Boolean).join('\n\n')
+        )
       } else {
         setMessage(`¡Inténtalo de nuevo! ${result.pista}`)
       }
@@ -107,14 +124,46 @@ export default function MathyGame({ student, onBack, onStudentUpdated }) {
 
   return (
     <main className="app-shell mathy-game">
+
+          {celebrate && (
+      <div
+        className="mathy-confetti"
+        aria-hidden="true"
+      >
+        {Array.from({ length: 18 }, (_, index) => (
+          <i
+            key={index}
+            style={{ '--i': index }}
+          />
+        ))}
+      </div>
+    )}
+
       <header className="mathy-topbar">
-        <button type="button" onClick={onBack}>← Volver al perfil</button>
-        <strong>La aventura de Mathy</strong>
+        <button
+          type="button"
+          className="mathy-back"
+          onClick={onBack}
+          aria-label="Volver al perfil"
+        >
+          <span aria-hidden="true">‹</span>
+          <span>Perfil</span>
+        </button>
+
+        <img
+          className="mathy-header-logo"
+          src="/logo.png"
+          alt="Logo de la institución"
+        />
+
+        <span className="mathy-header-label">
+          ¡Juega con Mathy!
+        </span>
       </header>
       <div className="mathy-content">
         <section className="mathy-intro">
           <div className={`mathy-character ${celebrate ? 'mathy-celebrate' : ''}`}>
-            <img src="/mathy.jpeg" alt="Mathy, tu compañero de aventura" />
+            <img src="/mathy.png" alt="Mathy, tu compañero de aventura" />
             {celebrate && <span className="mathy-prize">+2 MC ✨</span>}
           </div>
           <div>
@@ -125,7 +174,32 @@ export default function MathyGame({ student, onBack, onStudentUpdated }) {
           </div>
         </section>
 
-        <p className="mathy-message" role="status" aria-live="polite">{message}</p>
+      {message && (
+        <button
+          type="button"
+          className="mathy-toast-overlay"
+          onClick={() => setMessage('')}
+          aria-label="Cerrar aviso"
+        >
+          <span
+            className="mathy-toast-card"
+            role="status"
+            aria-live="polite"
+          >
+            <span className="mathy-toast-icon" aria-hidden="true">
+              {celebrate ? '🎉' : '💡'}
+            </span>
+
+            <span className="mathy-toast-text">
+              {message}
+            </span>
+
+            <span className="mathy-toast-hint">
+              Toca para continuar
+            </span>
+          </span>
+        </button>
+      )}
 
         {!state ? (
         <section className="mathy-card">
@@ -294,7 +368,16 @@ export default function MathyGame({ student, onBack, onStudentUpdated }) {
 
             <div className="mathy-worlds" aria-label="Mundos de la aventura">
               {Array.from({ length: 10 }, (_, index) => (
-                <span key={index} className={completed >= (index + 1) * 10 ? 'mathy-world-done' : ''}>
+                <span key={index} 
+                
+                className={
+                  completed >= (index + 1) * 10
+                    ? 'mathy-world-done'
+                    : completed < 100 &&
+                      index === Math.floor(completed / 10)
+                      ? 'mathy-world-current'
+                      : ''
+                }>
                   {completed >= (index + 1) * 10 ? '✓' : index + 1}
                 </span>
               ))}
