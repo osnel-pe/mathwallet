@@ -18,6 +18,8 @@ import {
   Trophy
 } from 'lucide-react'
 
+import * as XLSX from 'xlsx'
+
 import ScannerQR from './components/ScannerQR'
 import History from './components/History'
 import TeacherDashboard from './components/TeacherDashboard'
@@ -562,6 +564,7 @@ export default function App() {
   if (screen === 'goals') {
     return (
       <GoalsPanel
+        students={students}
         goals={goals}
         config={walletConfig}
         loading={loading}
@@ -1526,6 +1529,7 @@ function CoinForm({
 }
 
 function GoalsPanel({
+  students = [],
   goals,
   config,
   loading,
@@ -1634,6 +1638,171 @@ function GoalsPanel({
           records.length > 0
       )
 
+  const esPeriodoActivo =
+  Number(selectedPeriod) ===
+  Number(config.periodo_actual)
+
+const exportableGoals = students.map((alumno) => ({
+  alumno,
+  alumno_id: alumno.id,
+  acumulado_alcanzado: alumno.saldo_acumulado
+}))
+
+function descargarExcelPeriodo() {
+    if (loading || exportableGoals.length === 0) return
+
+  if (!esPeriodoActivo) {
+    window.alert(
+      'Esta descarga utiliza el acumulado del período activo. Selecciona ese período para descargar.'
+    )
+    return
+  }
+
+  try {
+    const comparador = new Intl.Collator('es', {
+      sensitivity: 'base',
+      numeric: true
+    })
+
+    const registrosPorGrupo = new Map()
+
+    for (const registro of exportableGoals) {
+      const nombreGrupo =
+        String(registro.alumno.grupo || '').trim() ||
+        'Sin grupo'
+
+      if (!registrosPorGrupo.has(nombreGrupo)) {
+        registrosPorGrupo.set(nombreGrupo, [])
+      }
+
+      registrosPorGrupo.get(nombreGrupo).push(registro)
+    }
+
+    const libro = XLSX.utils.book_new()
+    const nombresHojas = new Set()
+
+    const gruposOrdenados = [
+      ...registrosPorGrupo.keys()
+    ].sort(comparador.compare)
+
+    for (const nombreGrupo of gruposOrdenados) {
+      const registros = [
+        ...registrosPorGrupo.get(nombreGrupo)
+      ].sort((a, b) => {
+        for (const campo of [
+          'apellido_paterno',
+          'apellido_materno',
+          'nombre'
+        ]) {
+          const resultado = comparador.compare(
+            String(a.alumno[campo] || '').trim(),
+            String(b.alumno[campo] || '').trim()
+          )
+
+          if (resultado !== 0) return resultado
+        }
+
+        return comparador.compare(
+          String(a.alumno_id),
+          String(b.alumno_id)
+        )
+      })
+
+      const filas = [
+        ['Nombre completo', 'MathCoins alcanzados'],
+        ...registros.map((registro) => {
+          const alumno = registro.alumno
+          const cantidad = Number(
+            registro.acumulado_alcanzado
+          )
+
+          if (
+            registro.acumulado_alcanzado == null ||
+            !Number.isFinite(cantidad)
+          ) {
+            throw new Error(
+              'Hay un registro sin una cantidad válida de MathCoins.'
+            )
+          }
+
+          return [
+            [
+              alumno.apellido_paterno,
+              alumno.apellido_materno,
+              alumno.nombre
+            ]
+              .filter(Boolean)
+              .map((parte) => String(parte).trim())
+              .filter(Boolean)
+              .join(' '),
+            cantidad
+          ]
+        })
+      ]
+
+      const hoja = XLSX.utils.aoa_to_sheet(filas)
+
+      hoja['!cols'] = [
+        { wch: 55 },
+        { wch: 24 }
+      ]
+
+      hoja['!autofilter'] = {
+        ref: hoja['!ref']
+      }
+
+      // Excel limita los nombres de hoja a 31 caracteres.
+      const base =
+        nombreGrupo
+          .replace(/[\\/?*[\]:]/g, '-')
+          .replace(/^'+|'+$/g, '')
+          .slice(0, 31) || 'Grupo'
+
+      let nombreHoja = base
+      let numero = 2
+
+      while (
+        nombresHojas.has(nombreHoja.toLowerCase())
+      ) {
+        const sufijo = ` (${numero++})`
+        nombreHoja =
+          base.slice(0, 31 - sufijo.length) + sufijo
+      }
+
+      nombresHojas.add(nombreHoja.toLowerCase())
+
+      XLSX.utils.book_append_sheet(
+        libro,
+        hoja,
+        nombreHoja
+      )
+    }
+
+    const ciclo = String(config.ciclo_escolar)
+      .replace(/[^a-zA-Z0-9_-]/g, '-')
+
+    const fecha = new Intl.DateTimeFormat(
+      'en-CA',
+      {
+        timeZone: 'America/Hermosillo',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      }
+    ).format(new Date())
+
+    XLSX.writeFile(
+      libro,
+      `MathWallet_Metas_${ciclo}_Periodo-${selectedPeriod}_${fecha}.xlsx`,
+      { compression: true }
+    )
+  } catch (error) {
+    window.alert(
+      `No se pudo descargar el Excel: ${error.message}`
+    )
+  }
+}
+
   const nextPeriod =
     Number(
       config.periodo_actual || 1
@@ -1663,8 +1832,8 @@ function GoalsPanel({
             {Number(
               config.periodo_actual
             ) % 2 === 1
-              ? '550'
-              : '1,100'}{' '}
+              ? '500'
+              : '1,000'}{' '}
             MC
           </strong>
         </div>
@@ -1752,16 +1921,36 @@ function GoalsPanel({
               Todas las metas
             </option>
 
-            <option value="550">
-              Meta 550
+            <option value="500">
+              Meta 500
             </option>
 
-            <option value="1100">
-              Meta 1,100
+            <option value="1000">
+              Meta 1,000
             </option>
           </select>
         </div>
       </section>
+
+      <button
+        type="button"
+        className="advance-period-button"
+        onClick={descargarExcelPeriodo}
+        disabled={
+          loading ||
+          students.length === 0 ||
+          !esPeriodoActivo
+        }
+      >
+        Descargar Excel completo
+      </button>
+
+      {!esPeriodoActivo && (
+        <p>
+          Para descargar a todos los alumnos, selecciona
+          el período activo: {config.periodo_actual}.
+        </p>
+      )}
 
       <section className="goal-results">
         {loading ? (
@@ -1882,7 +2071,7 @@ function GoalsPanel({
 
             <p>
               {[3, 5].includes(nextPeriod)
-                ? 'Este cambio realizará el corte. Quienes alcanzaron 1,100 comenzarán con 100 MathCoins y los demás con 50.'
+                ? 'Este cambio realizará el corte. Quienes alcanzaron 1,000 comenzarán con 100 MathCoins y los demás con 50.'
                 : 'Se conservarán los saldos y el acumulado continuará hacia la siguiente meta.'}
             </p>
 

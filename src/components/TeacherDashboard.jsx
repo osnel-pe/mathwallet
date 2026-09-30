@@ -30,7 +30,7 @@ export default function TeacherDashboard({
   )
 
   const target =
-    period % 2 === 1 ? 550 : 1100
+    period % 2 === 1 ? 500 : 1100
 
   return (
     <main className="app-shell teacher-dashboard">
@@ -158,7 +158,7 @@ export default function TeacherDashboard({
             </strong>
 
             <small>
-              Alumnos que alcanzaron 550 o 1,100
+              Alumnos que alcanzaron 500 o 1,000
             </small>
           </span>
         </button>
