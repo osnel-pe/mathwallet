@@ -20,7 +20,7 @@ import {
 
 import * as XLSX from 'xlsx'
 
-import MathyGame from './components/MathyGame'
+import MathyHub from './components/MathyHub'
 import './mathy.css'
 import ScannerQR from './components/ScannerQR'
 import History from './components/History'
@@ -735,7 +735,7 @@ export default function App() {
 
   if (screen === 'mathy-game' && role === 'student' && student) {
   return (
-    <MathyGame
+    <MathyHub
       key={student.id}
       student={student}
       onBack={() => {

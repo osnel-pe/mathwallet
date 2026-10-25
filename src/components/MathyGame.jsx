@@ -161,6 +161,7 @@ const timer = setTimeout(() => setCelebrate(false), 2200)
         </span>
       </header>
       <div className="mathy-content">
+        {!started && (
         <section className="mathy-intro">
           <div className={`mathy-character ${celebrate ? 'mathy-celebrate' : ''}`}>
             <img src="/mathy.png" alt="Mathy, tu compañero de aventura" />
@@ -173,21 +174,24 @@ const timer = setTimeout(() => setCelebrate(false), 2200)
             <p>Puedes salir cuando quieras. Guardamos cada reto completado.</p>
           </div>
         </section>
+        )}
 
       {message && (
         <button
           type="button"
-          className="mathy-toast-overlay"
+          className={`mathy-toast-overlay ${
+            started ? 'mathy-speech-overlay' : ''
+          }`}
           onClick={() => setMessage('')}
-          aria-label="Cerrar aviso"
+          aria-label="Cerrar mensaje de Mathy"
         >
           <span
             className="mathy-toast-card"
             role="status"
             aria-live="polite"
           >
-            <span className="mathy-toast-icon" aria-hidden="true">
-              {celebrate ? '🎉' : '💡'}
+            <span className="mathy-speaker">
+              {celebrate ? '✨ Mathy celebra' : '💬 Mathy dice'}
             </span>
 
             <span className="mathy-toast-text">
@@ -385,6 +389,25 @@ const timer = setTimeout(() => setCelebrate(false), 2200)
           </>
         )}
       </div>
+
+      {started && (
+        <div
+          className={`mathy-companion ${
+            celebrate ? 'mathy-companion-happy' : ''
+          }`}
+        >
+          <img
+            src="/mathy.png"
+            alt="Mathy, tu compañero de aventura"
+          />
+
+          {celebrate && (
+            <span className="mathy-companion-prize">
+              +2 MC
+            </span>
+          )}
+        </div>
+      )}
     </main>
   )
 }

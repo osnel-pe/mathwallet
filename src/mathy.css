@@ -740,3 +740,250 @@ main.app-shell.mathy-game {
   box-shadow: 0 0 15px #43d8b030;
   justify-self: center;
 }
+
+/* Más espacio para el personaje */
+.mathy-game .mathy-intro {
+  grid-template-columns: 230px minmax(0, 1fr);
+}
+
+/* Marco blanco */
+.mathy-game .mathy-character {
+  width: 100%;
+  padding: 0;
+  overflow: hidden;
+  background: #fff;
+}
+
+/* Acercamiento de Mathy */
+.mathy-game .mathy-character img {
+  display: block;
+  width: 100%;
+  height: 340px;
+  object-fit: contain;
+  transform: scale(1.2);
+  transform-origin: center;
+}
+
+/* En celular: personaje grande arriba del texto */
+@media (max-width: 600px) {
+  .mathy-game .mathy-intro {
+    grid-template-columns: 1fr;
+    gap: 22px;
+  }
+
+  .mathy-game .mathy-character {
+    width: 220px;
+    max-width: 100%;
+    justify-self: center;
+  }
+
+  .mathy-game .mathy-character img {
+    height: 310px;
+  }
+}
+
+/* ESPACIO PARA EL COMPAÑERO */
+.mathy-game .mathy-content {
+  padding-bottom: calc(
+    190px + env(safe-area-inset-bottom)
+  );
+}
+
+/* MATHY EN LA ESQUINA */
+.mathy-companion {
+  position: fixed;
+  right: 24px;
+  bottom: calc(18px + env(safe-area-inset-bottom));
+  z-index: 201;
+  width: 104px;
+  height: 150px;
+  padding: 5px;
+  overflow: hidden;
+  border: 2px solid #8affdc;
+  border-radius: 55px 55px 20px 20px;
+  background: #fff;
+  box-shadow:
+    0 10px 30px #0006,
+    0 0 25px #63ffd32b;
+  pointer-events: none;
+  animation: mathy-reveal .35s ease-out both;
+}
+
+.mathy-companion img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transform: scale(1.15);
+  transform-origin: center;
+}
+
+.mathy-companion-prize {
+  position: absolute;
+  right: 0;
+  bottom: 8px;
+  left: 0;
+  padding: 5px;
+  background: #ffe094;
+  color: #153c2c;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.mathy-companion-happy {
+  animation: mathy-victory .55s ease-in-out 3;
+}
+
+/* EL AVISO SALE DEL PERSONAJE */
+.mathy-game button.mathy-toast-overlay.mathy-speech-overlay,
+.mathy-game button.mathy-toast-overlay.mathy-speech-overlay:hover:not(:disabled),
+.mathy-game button.mathy-toast-overlay.mathy-speech-overlay:active:not(:disabled) {
+  background: transparent;
+  backdrop-filter: none;
+  box-shadow: none;
+  transform: none;
+}
+
+.mathy-speech-overlay .mathy-toast-card {
+  position: fixed;
+  right: 24px;
+  bottom: calc(
+    188px + env(safe-area-inset-bottom)
+  );
+  display: flex;
+  align-items: stretch;
+  gap: 12px;
+  width: min(360px, calc(100vw - 40px));
+  max-height: max(100px, calc(100dvh - 270px));
+  padding: 22px;
+  border: 2px solid #8affdc;
+  border-radius: 24px 24px 8px 24px;
+  background: #f2fff9;
+  color: #15382f;
+  box-shadow: 0 16px 50px #0006;
+  text-align: left;
+  animation: mathy-speech-enter .25s ease-out both;
+}
+
+/* PUNTA DEL GLOBO HACIA MATHY */
+.mathy-speech-overlay .mathy-toast-card::after {
+  content: "";
+  position: absolute;
+  right: 32px;
+  bottom: -14px;
+  width: 24px;
+  height: 24px;
+  border-right: 2px solid #8affdc;
+  border-bottom: 2px solid #8affdc;
+  background: #f2fff9;
+  transform: rotate(45deg);
+}
+
+.mathy-speaker {
+  display: block;
+  color: #8affdc;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.mathy-speech-overlay .mathy-speaker {
+  color: #167356;
+}
+
+.mathy-speech-overlay .mathy-toast-text {
+  display: block;
+  min-height: 0;
+  overflow-y: auto;
+  font-size: 16px;
+  font-weight: 650;
+  line-height: 1.55;
+  color: #15382f;
+  white-space: pre-wrap;
+}
+
+.mathy-speech-overlay .mathy-toast-hint {
+  color: #547568;
+  font-size: 11px;
+}
+
+@keyframes mathy-speech-enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(.95);
+    transform-origin: bottom right;
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    transform-origin: bottom right;
+  }
+}
+
+@media (max-width: 600px) {
+  .mathy-companion {
+    right: 16px;
+    width: 90px;
+    height: 132px;
+  }
+
+  .mathy-speech-overlay .mathy-toast-card {
+    right: 16px;
+    bottom: calc(
+      168px + env(safe-area-inset-bottom)
+    );
+    width: min(330px, calc(100vw - 32px));
+    padding: 18px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mathy-companion,
+  .mathy-speech-overlay .mathy-toast-card {
+    animation: none;
+  }
+}
+
+/* Solo Mathy, sin recuadro */
+.mathy-companion {
+  width: 130px;
+  height: 200px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  overflow: visible;
+}
+
+.mathy-companion img {
+  display: block !important;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transform: none !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  filter: drop-shadow(0 8px 10px #0005);
+}
+
+/* Globo encima del personaje */
+.mathy-speech-overlay .mathy-toast-card {
+  bottom: calc(
+    235px + env(safe-area-inset-bottom)
+  );
+}
+
+@media (max-width: 600px) {
+  .mathy-companion {
+    width: 110px;
+    height: 175px;
+  }
+
+  .mathy-speech-overlay .mathy-toast-card {
+    bottom: calc(
+      210px + env(safe-area-inset-bottom)
+    );
+  }
+}
