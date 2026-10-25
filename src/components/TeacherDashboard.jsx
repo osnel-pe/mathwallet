@@ -30,7 +30,7 @@ export default function TeacherDashboard({
   )
 
   const target =
-    period % 2 === 1 ? 500 : 1100
+    period % 2 === 1 ? 500 : 1000
 
   return (
     <main className="app-shell teacher-dashboard">

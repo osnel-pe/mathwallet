@@ -107,3 +107,161 @@ main.app-shell.mathy2{background:radial-gradient(ellipse at 90% 5%,var(--m2-glow
   .mathy2-toast-title{font-size:17px}.mathy2 .mathy2-toast .mathy-toast-card{max-height:max(125px,calc(100dvh - 260px))}
 }
 @media(prefers-reduced-motion:reduce){.mathy2 *, .mathy2 *::before,.mathy2 *::after{animation:none!important;transition:none!important}}
+
+/* SELECTOR MÁS COMPACTO */
+.mathy2-hub .mathy-content {
+  max-width: 1000px;
+  padding-top: 18px;
+}
+
+/* Bienvenida más baja */
+.mathy2-hub .mathy2-hub-hero {
+  min-height: 0;
+  grid-template-columns: minmax(0, 1fr) 120px;
+  gap: 16px;
+  padding: 24px 28px;
+  margin-bottom: 18px;
+  border-radius: 24px;
+}
+
+.mathy2-hub .mathy2-hub-hero h1 {
+  margin: 10px 0;
+  font-size: clamp(30px, 4vw, 44px);
+}
+
+.mathy2-hub .mathy2-hub-hero p {
+  margin: 8px 0 0;
+  font-size: 14px;
+}
+
+.mathy2-hub .mathy2-hub-hero > img {
+  width: 110px;
+  height: 165px;
+}
+
+/* Hasta tres tarjetas por fila en computadora */
+.mathy2-hub .mathy2-adventures {
+  grid-template-columns:
+    repeat(auto-fit, minmax(250px, 1fr));
+  gap: 14px;
+  align-items: stretch;
+}
+
+/* Tarjetas con menos espacios vacíos */
+.mathy2-hub .mathy2-adventure {
+  min-width: 0;
+  padding: 19px;
+  border-radius: 20px;
+  box-shadow: 0 8px 22px #0002;
+}
+
+.mathy2-hub .mathy2-adventure-head {
+  gap: 8px;
+}
+
+.mathy2-hub .mathy2-season {
+  font-size: 10px;
+  letter-spacing: .1em;
+}
+
+.mathy2-hub .mathy2-adventure-head > span:last-child {
+  font-size: 23px;
+}
+
+.mathy2-hub .mathy2-adventure h2 {
+  margin: 12px 0 6px;
+  font-size: 23px;
+  line-height: 1.2;
+}
+
+.mathy2-hub .mathy2-adventure p {
+  margin: 7px 0 12px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.mathy2-hub .mathy2-adventure-stat {
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.mathy2-hub .mathy2-adventure-stat strong {
+  font-size: 28px;
+}
+
+.mathy2-hub .mathy2-adventure-stat span {
+  font-size: 11px;
+}
+
+.mathy2-hub .mathy2-adventure progress {
+  height: 6px;
+  margin: 10px 0 14px;
+}
+
+.mathy2-hub .mathy2-chips {
+  gap: 6px;
+  margin: 10px 0;
+}
+
+.mathy2-hub .mathy2-chips span {
+  padding: 5px 8px;
+  font-size: 10px;
+}
+
+.mathy2-hub .mathy2-lock-reason {
+  padding: 9px 11px;
+}
+
+.mathy2-hub .mathy2-adventure > button {
+  min-height: 44px;
+  padding: 11px 14px;
+  border-radius: 12px;
+  font-size: 13px;
+}
+
+.mathy2-hub .mathy2-footnote {
+  margin: 16px 0;
+  font-size: 11px;
+}
+
+/* CELULAR: una tarjeta por fila, más baja */
+@media (max-width: 600px) {
+  .mathy2-hub .mathy-content {
+    padding: 14px 12px 30px;
+  }
+
+  .mathy2-hub .mathy2-hub-hero {
+    grid-template-columns: minmax(0, 1fr) 82px;
+    gap: 10px;
+    padding: 20px 16px;
+    border-radius: 20px;
+  }
+
+  .mathy2-hub .mathy2-hub-hero h1 {
+    font-size: 32px;
+  }
+
+  .mathy2-hub .mathy2-hub-hero > img {
+    width: 82px;
+    height: 145px;
+  }
+
+  .mathy2-hub .mathy2-hub-hero p {
+    font-size: 12px;
+  }
+
+  .mathy2-hub .mathy2-adventures {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .mathy2-hub .mathy2-adventure {
+    padding: 16px;
+    border-radius: 18px;
+  }
+
+  .mathy2-hub .mathy2-adventure h2 {
+    margin-top: 8px;
+    font-size: 22px;
+  }
+}
