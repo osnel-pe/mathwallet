@@ -65,27 +65,24 @@ const CAMPOS_ALUMNO = `
 export async function obtenerAlumnos() {
   if (!supabaseConfigured) return []
 
-  const { data, error } = await supabase
-    .from('alumnos')
-    .select(CAMPOS_ALUMNO)
-    .order('grupo')
-    .order('apellido_paterno')
-    .order('nombre')
+  const [{ data, error }, awards] = await Promise.all([
+    supabase.from('alumnos').select(CAMPOS_ALUMNO)
+      .order('grupo').order('apellido_paterno').order('nombre'),
+    obtenerEstrellas()
+  ])
 
   if (error) throw error
 
-  const awards = await obtenerEstrellas()
   return (data ?? []).filter(alumno => esGrupoPermitido(alumno.grupo)).map(alumno => ({ ...alumno, estrellas: awards.filter(e => Number(e.alumno_id) === Number(alumno.id)) }))
 }
 
 export async function obtenerAlumno(id) {
   requireSupabase()
 
-  const { data, error } = await supabase
-    .from('alumnos')
-    .select(CAMPOS_ALUMNO)
-    .eq('id', Number(id))
-    .single()
+  const [{ data, error }, awards] = await Promise.all([
+    supabase.from('alumnos').select(CAMPOS_ALUMNO).eq('id', Number(id)).single(),
+    obtenerEstrellas()
+  ])
 
   if (error) throw error
 
@@ -95,7 +92,6 @@ export async function obtenerAlumno(id) {
     )
   }
 
-  const awards = await obtenerEstrellas()
   return { ...data, estrellas: awards.filter(e => Number(e.alumno_id) === Number(data.id)) }
 }
 
@@ -208,12 +204,35 @@ export async function cambiarPeriodoMathWallet(
 
   if (error) throw error
 
+  invalidarEstrellas()
   return data
 }
+// Caché breve y peticiones compartidas: las estrellas no requieren una
+// descarga de todo el historial por cada alumno que se abre.
+let starsCache = null
+let starsExpires = 0
+let starsPending = null
+let starsVersion = 0
+function invalidarEstrellas() {
+  starsVersion += 1
+  starsCache = null
+  starsPending = null
+  starsExpires = 0
+}
 export async function obtenerEstrellas() {
-  const { data, error } = await supabase.rpc('mw_estrellas_actuales')
-  if (error) throw error
-  return data || []
+  if (starsCache && Date.now() < starsExpires) return starsCache
+  if (starsPending) return starsPending
+  const version = starsVersion
+  const request = (async () => {
+    const { data, error } = await supabase.rpc('mw_estrellas_actuales')
+    if (error) throw error
+    const records = data || []
+    if (version === starsVersion) { starsCache = records; starsExpires = Date.now() + 30000 }
+    return records
+  })()
+  starsPending = request
+  try { return await request }
+  finally { if (starsPending === request) starsPending = null }
 }
 export async function obtenerBloqueos() {
   const { data, error } = await supabase.from('mw_mathy_niveles').select('*').order('aventura').order('nivel')

@@ -28,13 +28,14 @@ function ordenarRanking(a, b) {
     return diferencia
   }
 
-  return nombreCompleto(a).localeCompare(
+  const alphabetical = nombreCompleto(a).localeCompare(
     nombreCompleto(b),
     'es',
     {
       sensitivity: 'base'
     }
   )
+  return alphabetical || Number(a.id) - Number(b.id)
 }
 
 export default function RankingView({
@@ -99,9 +100,8 @@ export default function RankingView({
     activeGrade
   ])
 
-  const cutoff = completeRanking[9]?.saldo_acumulado
-  const topTen = cutoff == null ? completeRanking : completeRanking.filter(item => Number(item.saldo_acumulado || 0) >= Number(cutoff))
-  const rankOf = (item) => 1 + completeRanking.filter(other => Number(other.saldo_acumulado || 0) > Number(item.saldo_acumulado || 0)).length
+  const topTen = completeRanking.slice(0, 10)
+  const rankOf = item => completeRanking.findIndex(other => String(other.id) === String(item.id)) + 1
   const podium = topTen.slice(0, 3)
   const remaining = topTen.slice(3)
 
@@ -160,7 +160,7 @@ export default function RankingView({
         )}
 
         <section className="ranking-controls-card">
-          <p className="mw-ranking-note">Clasificación por MathCoins acumulados · las compras no bajan tu avance.</p>
+          <p className="mw-ranking-note">MathCoins acumulados · empates por nombre completo en orden alfabético.</p>
           <div className="ranking-type-buttons">
             <button
               type="button"
@@ -273,7 +273,7 @@ export default function RankingView({
               <section className="ranking-rest-card">
                 <div className="ranking-section-title">
                   <Award size={20} />
-                  <h2>Top 10 · incluye empates</h2>
+                  <h2>Top 10</h2>
                 </div>
 
                 <div className="ranking-results-list">

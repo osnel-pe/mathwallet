@@ -1,5 +1,6 @@
 import {
   useEffect,
+  useRef,
   useState
 } from 'react'
 
@@ -70,6 +71,12 @@ export default function App() {
   const [screen, setScreen] =
     useState('access')
 
+  const profileRequest = useRef(0)
+  const historyRequest = useRef(0)
+  const [profileRefreshing, setProfileRefreshing] = useState(false)
+  const [profileError, setProfileError] = useState('')
+  const [historyLoading, setHistoryLoading] = useState(false)
+  const [historyError, setHistoryError] = useState('')
   const [profileOrigin, setProfileOrigin] = useState('teacher-scan')
 
   const [role, setRole] =
@@ -215,6 +222,13 @@ export default function App() {
   }, [])
 
   function go(nextScreen) {
+    if (!['teacher-student', 'student-profile'].includes(nextScreen)) {
+      profileRequest.current += 1
+      historyRequest.current += 1
+      setProfileRefreshing(false)
+      setHistoryLoading(false)
+      setLoading(false)
+    }
     setNotice('')
     setScreen(nextScreen)
   }
@@ -275,86 +289,82 @@ export default function App() {
     }
   }
 
-  async function openStudent(
-    id,
-    destination = 'student-profile',
-    origin = 'teacher-scan'
-  ) {
-    setLoading(true)
-
-    if (destination === 'teacher-student') {
-      const {
-        data: { session }
-      } = await supabase.auth.getSession()
-
-      if (!session?.user) {
-        setLoading(false)
-        setRole('teacher')
-        go('teacher-login')
-
-        return false
-      }
+  async function openStudent(id, destination = 'student-profile', origin = 'teacher-scan') {
+    // La sesión del maestro ya se recuperó al entrar en la aplicación.
+    // La base de datos sigue comprobando la autorización al registrar cambios.
+    if (destination === 'teacher-student' && !user) {
+      setRole('teacher')
+      go('teacher-login')
+      return false
     }
-
-    try {
-      const foundStudent =
-        await obtenerAlumno(id)
-
-      const studentMovements =
-        await obtenerMovimientos(
-          foundStudent.id,
-          'dia'
-        )
-
-      setProfileOrigin(origin)
+    const request = ++profileRequest.current
+    const history = ++historyRequest.current
+    const cached = students.find(item => String(item.id) === String(id))
+      || (String(student?.id) === String(id) ? student : null)
+    setProfileOrigin(origin)
+    setPeriod('dia')
+    setMovements([])
+    setProfileError('')
+    setHistoryError('')
+    setProfileRefreshing(true)
+    setHistoryLoading(true)
+    function displayProfile(foundStudent) {
       setStudent(foundStudent)
-      setMovements(studentMovements)
-      setPeriod('dia')
-
-      if (
-        destination === 'student-profile'
-      ) {
-        localStorage.setItem(
-          'mathwallet_student_id',
-          String(foundStudent.id)
-        )
-
+      if (destination === 'student-profile') {
+        localStorage.setItem('mathwallet_student_id', String(foundStudent.id))
         setRole('student')
       }
-
       go(destination)
+    }
+    // No espera la red para abrir un alumno presente en la lista.
+    if (cached) displayProfile(cached)
+    else setLoading(true)
 
+    // Historial y perfil se consultan en paralelo; una respuesta antigua nunca
+    // puede reemplazar al alumno o filtro que el usuario eligió después.
+    const historyTask = obtenerMovimientos(id, 'dia').then(records => {
+      if (history === historyRequest.current) setMovements(records)
+    }).catch(() => {
+      if (history === historyRequest.current) setHistoryError('No se pudo actualizar el historial. Selecciona un periodo para reintentar.')
+    }).finally(() => {
+      if (history === historyRequest.current) setHistoryLoading(false)
+    })
+    // La promesa gestiona sus errores y puede continuar tras abrir la pantalla.
+    void historyTask
+    try {
+      const latest = await obtenerAlumno(id)
+      if (request !== profileRequest.current) return false
+      if (!cached) displayProfile(latest)
+      else setStudent(latest)
+      setStudents(items => items.map(item => String(item.id) === String(latest.id) ? latest : item))
       return true
     } catch (error) {
-      showNotice(
-        error.message ||
-        'No encontramos un alumno con ese código.'
-      )
-
+      if (request !== profileRequest.current) return false
+      if (cached) setProfileError('No se pudo confirmar el saldo actualizado. Reintenta antes de registrar movimientos.')
+      else showNotice(error.message || 'No encontramos un alumno con ese código.')
       return false
     } finally {
-      setLoading(false)
+      if (request === profileRequest.current) {
+        setProfileRefreshing(false)
+        setLoading(false)
+      }
     }
   }
 
   async function changeHistoryPeriod(value) {
     if (!student) return
-
+    const request = ++historyRequest.current
     setPeriod(value)
-    setLoading(true)
-
+    setHistoryLoading(true)
+    setHistoryError('')
+    setMovements([])
     try {
-      const updatedMovements =
-        await obtenerMovimientos(
-          student.id,
-          value
-        )
-
-      setMovements(updatedMovements)
+      const records = await obtenerMovimientos(student.id, value)
+      if (request === historyRequest.current) setMovements(records)
     } catch (error) {
-      showNotice(error.message)
+      if (request === historyRequest.current) setHistoryError(error.message || 'No se pudo cargar el historial.')
     } finally {
-      setLoading(false)
+      if (request === historyRequest.current) setHistoryLoading(false)
     }
   }
 
@@ -670,7 +680,12 @@ export default function App() {
         student={student}
         movements={movements}
         period={period}
-        loading={loading}
+        loading={loading || profileRefreshing || !!profileError}
+        historyLoading={historyLoading || loading}
+        historyError={historyError}
+        profileRefreshing={profileRefreshing}
+        profileError={profileError}
+        onRefresh={() => openStudent(student.id, 'teacher-student', profileOrigin)}
         teacher
         onBack={() =>
           go(profileOrigin)
@@ -681,6 +696,9 @@ export default function App() {
           causa,
           tipo
         ) => {
+          const request = profileRequest.current
+          const history = ++historyRequest.current
+          setHistoryLoading(false)
           setLoading(true)
 
           try {
@@ -696,7 +714,7 @@ export default function App() {
                 student.id
               )
 
-            setStudent(updatedStudent)
+            if (request === profileRequest.current) setStudent(updatedStudent)
 
             setStudents(
               (currentStudents) =>
@@ -708,6 +726,8 @@ export default function App() {
                       : currentStudent
                 )
             )
+
+            if (request !== profileRequest.current) return
 
             if (tipo === 'recompensa') {
               showNotice(
@@ -734,15 +754,17 @@ export default function App() {
             if (profileOrigin === 'teacher-scan') {
               setScreen('teacher-scan')
             } else {
-              setMovements(await obtenerMovimientos(student.id, period))
+              const records = await obtenerMovimientos(student.id, period)
+              if (history === historyRequest.current) setMovements(records)
             }
           } catch (error) {
+            if (request !== profileRequest.current) return
             showNotice(
               error.message ||
               'No fue posible registrar el movimiento.'
             )
           } finally {
-            setLoading(false)
+            if (request === profileRequest.current) setLoading(false)
           }
         }}
         notice={notice}
@@ -784,6 +806,11 @@ export default function App() {
           movements={movements}
           period={period}
           loading={loading}
+          historyLoading={historyLoading || loading}
+          historyError={historyError}
+          profileRefreshing={profileRefreshing}
+          profileError={profileError}
+          onRefresh={() => openStudent(student.id, 'student-profile')}
           onPeriod={
             changeHistoryPeriod
           }
@@ -1222,6 +1249,11 @@ function StudentProfile({
   movements,
   period,
   loading,
+  historyLoading = loading,
+  historyError,
+  profileRefreshing,
+  profileError,
+  onRefresh,
   teacher,
   studentHeader,
   onBack,
@@ -1263,6 +1295,8 @@ function StudentProfile({
         </div>
       </section>
 
+      {profileRefreshing && <p className="mw-ranking-note" role="status">Actualizando saldo…</p>}
+      {profileError && <div role="alert" className="mw-error"><p>{profileError}</p><button type="button" className="secondary" onClick={onRefresh}>Reintentar actualización</button></div>}
       <StarJourney student={student} />
 
       <section className="wallet-balance-card">
@@ -1319,6 +1353,7 @@ function StudentProfile({
         <CoinForm
           onMove={onMove}
           disabled={loading}
+          busyLabel={profileRefreshing ? 'Actualizando saldo…' : profileError ? 'Actualiza el saldo para continuar' : 'Guardando…'}
         />
       )}
 
@@ -1373,10 +1408,10 @@ function StudentProfile({
           ))}
         </div>
 
-        <History
+        {historyError ? <p role="alert" className="mw-error">{historyError}</p> : <History
           items={movements}
-          loading={loading}
-        />
+          loading={historyLoading}
+        />}
       </section>
 
       {notice && (
@@ -1386,7 +1421,7 @@ function StudentProfile({
   )
 }
 
-function CoinForm({ onMove, disabled }) {
+function CoinForm({ onMove, disabled, busyLabel = 'Guardando…' }) {
   const [type, setType] = useState('recompensa')
   const [amount, setAmount] = useState(20)
   const [custom, setCustom] = useState('')
@@ -1412,7 +1447,7 @@ function CoinForm({ onMove, disabled }) {
         <label>{type === 'compra' ? 'Concepto de compra' : 'Motivo'}<select value={reason} onChange={e => setReason(e.target.value)}>{reasons.map(r => <option key={r}>{r}</option>)}</select></label>
         {reason === 'Otro' && <label>Especifica el motivo<input required maxLength="250" value={other} onChange={e => setOther(e.target.value)} placeholder="¿Por qué se realiza este movimiento?" /></label>}
       </fieldset>
-      <button className="primary mw-submit" disabled={disabled || !valid}>{disabled ? 'Guardando…' : `Registrar ${value > 0 ? value.toLocaleString('es-MX') : '—'} MC`}</button>
+      <button className="primary mw-submit" disabled={disabled || !valid}>{disabled ? busyLabel : `Registrar ${value > 0 ? value.toLocaleString('es-MX') : '—'} MC`}</button>
     </form>
   </section>
 }
