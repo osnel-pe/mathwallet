@@ -20,6 +20,9 @@ import {
 
 import * as XLSX from 'xlsx'
 
+import MathyControl from './components/MathyControl'
+import StarJourney from './components/StarJourney'
+import './upgrade.css'
 import MathyHub from './components/MathyHub'
 import './mathy.css'
 import ScannerQR from './components/ScannerQR'
@@ -66,6 +69,8 @@ function nombreCompleto(alumno = {}) {
 export default function App() {
   const [screen, setScreen] =
     useState('access')
+
+  const [profileOrigin, setProfileOrigin] = useState('teacher-scan')
 
   const [role, setRole] =
     useState(null)
@@ -272,7 +277,8 @@ export default function App() {
 
   async function openStudent(
     id,
-    destination = 'student-profile'
+    destination = 'student-profile',
+    origin = 'teacher-scan'
   ) {
     setLoading(true)
 
@@ -300,6 +306,7 @@ export default function App() {
           'dia'
         )
 
+      setProfileOrigin(origin)
       setStudent(foundStudent)
       setMovements(studentMovements)
       setPeriod('dia')
@@ -386,6 +393,7 @@ export default function App() {
 
   const protectedTeacherScreen =
     [
+      'mathy-control',
       'teacher-home',
       'teacher-scan',
       'teacher-student',
@@ -492,6 +500,7 @@ export default function App() {
           period={
             walletConfig.periodo_actual
           }
+          onMathy={() => go('mathy-control')}
           onGroups={() => go('groups')}
           onScan={() => go('teacher-scan')}
           onRanking={() => go('ranking')}
@@ -520,6 +529,8 @@ export default function App() {
     )
   }
 
+  if (screen === 'mathy-control') return <Shell title="Control de Mathy" onBack={() => go('teacher-home')}><MathyControl /></Shell>
+
   if (screen === 'teacher-scan') {
     return (
       <Shell
@@ -530,6 +541,7 @@ export default function App() {
       >
         <ScannerQR
           title="Escanear alumno"
+          students={students}
           allowManual
           onRead={(id) =>
             openStudent(
@@ -556,7 +568,8 @@ export default function App() {
         onOpen={(id) =>
           openStudent(
             id,
-            'teacher-student'
+            'teacher-student',
+            'groups'
           )
         }
       />
@@ -601,7 +614,7 @@ export default function App() {
             setWalletConfig(updatedConfig)
 
             showNotice(
-              `Periodo ${nextPeriod} activado correctamente.`
+              nextPeriod === 1 ? 'Nuevo curso iniciado. Historial conservado y saldos en 50 MC.' : `Periodo ${nextPeriod} activado correctamente.`
             )
 
             return true
@@ -660,7 +673,7 @@ export default function App() {
         loading={loading}
         teacher
         onBack={() =>
-          go('teacher-scan')
+          go(profileOrigin)
         }
         onPeriod={changeHistoryPeriod}
         onMove={async (
@@ -718,7 +731,11 @@ export default function App() {
               Después del movimiento vuelve
               automáticamente al escáner.
             */
-            setScreen('teacher-scan')
+            if (profileOrigin === 'teacher-scan') {
+              setScreen('teacher-scan')
+            } else {
+              setMovements(await obtenerMovimientos(student.id, period))
+            }
           } catch (error) {
             showNotice(
               error.message ||
@@ -1177,6 +1194,7 @@ function Groups({
                 <strong>
                   {nombreCompleto(item)}
                 </strong>
+                <StarJourney student={item} compact />
 
                 <small>
                   {item.grupo} · ID {item.id}
@@ -1245,6 +1263,8 @@ function StudentProfile({
         </div>
       </section>
 
+      <StarJourney student={student} />
+
       <section className="wallet-balance-card">
         <span className="wallet-balance-label">
           SALDO DISPONIBLE
@@ -1290,7 +1310,7 @@ function StudentProfile({
           <span className="dashboard-action-icon" aria-hidden="true">🎮</span>
           <span className="dashboard-action-copy">
             <strong>Jugar con Mathy</strong>
-            <small>100 retos · Gana MathCoins y continúa tu aventura</small>
+            <small>Dos aventuras · Aprende, avanza y gana MathCoins</small>
           </span>
         </button>
       )}
@@ -1366,210 +1386,35 @@ function StudentProfile({
   )
 }
 
-function CoinForm({
-  onMove,
-  disabled
-}) {
-  const [
-    shortcutAmount,
-    setShortcutAmount
-  ] = useState(5)
-
-  const [
-    customAmount,
-    setCustomAmount
-  ] = useState('')
-
-  const [cause, setCause] =
-    useState('')
-
-  const [type, setType] =
-    useState('recompensa')
-
-  const amount =
-    customAmount === ''
-      ? shortcutAmount
-      : Number(customAmount)
-
-  const validAmount =
-    Number.isInteger(amount) &&
-    amount > 0 &&
-    amount <= 100000
-
-  function chooseShortcut(value) {
-    setShortcutAmount(value)
-    setCustomAmount('')
+function CoinForm({ onMove, disabled }) {
+  const [type, setType] = useState('recompensa')
+  const [amount, setAmount] = useState(20)
+  const [custom, setCustom] = useState('')
+  const [reason, setReason] = useState('Participación en clases')
+  const [other, setOther] = useState('')
+  const presets = type === 'compra' ? [40, 200, 600, 1200] : type === 'recompensa' ? [20, 40, 50, 75, 100] : [5, 10, 20, 50, 100]
+  const reasons = type === 'compra' ? ['Quiz', 'Inciso del examen', 'Cambio de equipo', 'Crear equipo', 'Otro'] : type === 'recompensa' ? ['Participación en clases', 'Trabajo en el salón', 'Sobresaliente (Quiz)', 'Sobresaliente (Examen)', 'Otro'] : ['Otro']
+  const value = custom === '' ? amount : Number(custom)
+  const cause = reason === 'Otro' ? other.trim() : reason
+  const valid = Number.isInteger(value) && value > 0 && value <= 100000 && !!cause
+  function changeType(next) {
+    setType(next); setAmount(next === 'compra' ? 40 : next === 'recompensa' ? 20 : 5)
+    setCustom(''); setOther(''); setReason(next === 'compra' ? 'Quiz' : next === 'recompensa' ? 'Participación en clases' : 'Otro')
   }
-
-  function submitMovement() {
-    if (!validAmount || disabled) return
-
-    const signedAmount =
-      type === 'recompensa'
-        ? amount
-        : -amount
-
-    onMove(
-      signedAmount,
-      cause,
-      type
-    )
-  }
-
-  return (
-    <section className="coin-form">
-      <div className="section-heading compact-heading">
-        <div>
-          <span className="eyebrow">
-            MOVIMIENTO
-          </span>
-
-          <h2>Modificar MathCoins</h2>
-        </div>
-      </div>
-
-      <div className="movement-types">
-        <button
-          type="button"
-          className={
-            type === 'recompensa'
-              ? 'active'
-              : ''
-          }
-          onClick={() =>
-            setType('recompensa')
-          }
-        >
-          Recompensa
-        </button>
-
-        <button
-          type="button"
-          className={
-            type === 'compra'
-              ? 'active'
-              : ''
-          }
-          onClick={() =>
-            setType('compra')
-          }
-        >
-          Compra
-        </button>
-
-        <button
-          type="button"
-          className={
-            type === 'falta'
-              ? 'active'
-              : ''
-          }
-          onClick={() =>
-            setType('falta')
-          }
-        >
-          Falta
-        </button>
-      </div>
-
-      <p className="movement-help">
-        {type === 'compra'
-          ? 'Resta solamente del saldo disponible.'
-          : type === 'falta'
-            ? 'Resta del saldo disponible y del acumulado.'
-            : 'Suma al saldo disponible y al acumulado.'}
-      </p>
-
-      <div className="amounts">
-        {[5, 10, 20, 50, 100].map(
-          (value) => (
-            <button
-              type="button"
-              className={
-                customAmount === '' &&
-                shortcutAmount === value
-                  ? 'active'
-                  : ''
-              }
-              onClick={() =>
-                chooseShortcut(value)
-              }
-              key={value}
-            >
-              {value}
-            </button>
-          )
-        )}
-      </div>
-
-      <label className="custom-amount-field">
-        <span>
-          Cantidad personalizada
-        </span>
-
-        <input
-          type="number"
-          inputMode="numeric"
-          min="1"
-          max="100000"
-          step="1"
-          value={customAmount}
-          onChange={(event) =>
-            setCustomAmount(
-              event.target.value
-                .replace(/[^0-9]/g, '')
-                .slice(0, 6)
-            )
-          }
-          placeholder={
-            `Usar atajo: ${shortcutAmount}`
-          }
-        />
-      </label>
-
-      <input
-        value={cause}
-        onChange={(event) =>
-          setCause(event.target.value)
-        }
-        placeholder="Causa (opcional)"
-        maxLength={120}
-      />
-
-      <button
-        type="button"
-        className={
-          type === 'recompensa'
-            ? 'movement-submit add'
-            : 'movement-submit subtract'
-        }
-        disabled={
-          disabled ||
-          !validAmount
-        }
-        onClick={submitMovement}
-      >
-        {type === 'recompensa'
-          ? '+'
-          : '−'}{' '}
-
-        {type === 'recompensa'
-          ? 'Sumar'
-          : 'Restar'}{' '}
-
-        {validAmount ? amount : ''}{' '}
-        MathCoins
-      </button>
-
-      {customAmount !== '' &&
-        !validAmount && (
-          <small className="amount-error">
-            Escribe una cantidad entera entre
-            1 y 100000.
-          </small>
-        )}
-    </section>
-  )
+  return <section className="coin-form">
+    <div className="section-heading compact-heading"><div><span className="eyebrow">MOVIMIENTO</span><h2>Modificar MathCoins</h2></div><Coins /></div>
+    <div className="movement-types">{[['recompensa','Recompensa'],['compra','Compra'],['falta','Falta']].map(([key,label]) => <button key={key} type="button" disabled={disabled} className={type === key ? 'active' : ''} onClick={() => changeType(key)}>{label}</button>)}</div>
+    <p className="movement-help">{type === 'compra' ? 'Resta solamente del saldo disponible.' : type === 'falta' ? 'Resta del saldo disponible y del acumulado.' : 'Suma al saldo disponible y al acumulado.'}</p>
+    <form onSubmit={(event) => { event.preventDefault(); if (valid && !disabled) onMove(type === 'recompensa' ? value : -value, cause, type) }}>
+      <fieldset disabled={disabled} className="mw-fields"><legend className="eyebrow">CANTIDAD</legend>
+        <div className="amounts">{presets.map(n => <button type="button" key={n} className={custom === '' && amount === n ? 'active' : ''} onClick={() => { setAmount(n); setCustom('') }}>{n}</button>)}</div>
+        <label>Otra cantidad<input type="number" min="1" max="100000" step="1" value={custom} placeholder="Escribe una cantidad personalizada" onChange={e => setCustom(e.target.value)} /></label>
+        <label>{type === 'compra' ? 'Concepto de compra' : 'Motivo'}<select value={reason} onChange={e => setReason(e.target.value)}>{reasons.map(r => <option key={r}>{r}</option>)}</select></label>
+        {reason === 'Otro' && <label>Especifica el motivo<input required maxLength="250" value={other} onChange={e => setOther(e.target.value)} placeholder="¿Por qué se realiza este movimiento?" /></label>}
+      </fieldset>
+      <button className="primary mw-submit" disabled={disabled || !valid}>{disabled ? 'Guardando…' : `Registrar ${value > 0 ? value.toLocaleString('es-MX') : '—'} MC`}</button>
+    </form>
+  </section>
 }
 
 function GoalsPanel({
@@ -1850,10 +1695,10 @@ function descargarExcelPeriodo() {
   const nextPeriod =
     Number(
       config.periodo_actual || 1
-    ) + 1
+    ) % 6 + 1
 
   const requiredPhrase =
-    `CAMBIAR AL PERIODO ${nextPeriod}`
+    nextPeriod === 1 ? 'CAMBIAR DE CURSO' : `CAMBIAR AL PERIODO ${nextPeriod}`
 
   return (
     <Shell
@@ -2085,9 +1930,7 @@ function descargarExcelPeriodo() {
         )}
       </section>
 
-      {Number(
-        config.periodo_actual
-      ) < 6 && (
+      {Number(config.periodo_actual) <= 6 && (
         <button
           type="button"
           className="advance-period-button"
@@ -2098,7 +1941,7 @@ function descargarExcelPeriodo() {
         >
           <Target />
 
-          Avanzar al periodo {nextPeriod}
+          {nextPeriod === 1 ? 'Finalizar curso e iniciar el siguiente' : `Avanzar al periodo ${nextPeriod}`}
         </button>
       )}
 
@@ -2110,12 +1953,12 @@ function descargarExcelPeriodo() {
             </div>
 
             <h2>
-              ¿Cambiar al periodo {nextPeriod}?
+              {nextPeriod === 1 ? '¿Finalizar este curso?' : `¿Cambiar al periodo ${nextPeriod}?`}
             </h2>
 
             <p>
-              {[3, 5].includes(nextPeriod)
-                ? 'Este cambio realizará el corte. Quienes alcanzaron 1,000 comenzarán con 100 MathCoins y los demás con 50.'
+              {nextPeriod === 1 ? 'Se entregará la tercera estrella a quienes estén en el Top 10 del grado, incluidos los empates. Se conservará el historial y todos comenzarán el nuevo curso con 50 MC y cero estrellas actuales.' : [3, 5].includes(nextPeriod)
+                ? 'Se entregará una estrella al Top 10 de cada grado, incluidos los empates. Reinicio: ranking 150 MC; demás con 1,000 o más, 100 MC; menos de 1,000, 50 MC.'
                 : 'Se conservarán los saldos y el acumulado continuará hacia la siguiente meta.'}
             </p>
 

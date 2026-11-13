@@ -12,6 +12,7 @@ export default function TeacherDashboard({
   loading,
   period = 1,
   onGroups,
+  onMathy,
   onScan,
   onRanking,
   onGoals,
@@ -143,6 +144,9 @@ export default function TeacherDashboard({
           </span>
         </button>
 
+        <button type="button" className="main-dashboard-action mw-control-action" onClick={onMathy}>
+          <span className="dashboard-action-icon" aria-hidden="true">🎮</span><span className="dashboard-action-copy"><strong>Control de Mathy</strong><small>Abre o cierra niveles para todos los alumnos</small></span>
+        </button>
         <button
           type="button"
           className="main-dashboard-action goals-action"

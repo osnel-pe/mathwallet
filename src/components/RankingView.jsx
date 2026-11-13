@@ -7,6 +7,7 @@ import {
   Medal,
   Trophy
 } from 'lucide-react'
+import StarJourney from './StarJourney'
 import { obtenerGrado } from '../services/mathwallet'
 
 function nombreCompleto(student) {
@@ -21,7 +22,7 @@ function nombreCompleto(student) {
 
 function ordenarRanking(a, b) {
   const diferencia =
-    Number(b.saldo || 0) - Number(a.saldo || 0)
+    Number(b.saldo_acumulado || 0) - Number(a.saldo_acumulado || 0)
 
   if (diferencia !== 0) {
     return diferencia
@@ -98,14 +99,14 @@ export default function RankingView({
     activeGrade
   ])
 
-  const topTen = completeRanking.slice(0, 10)
+  const cutoff = completeRanking[9]?.saldo_acumulado
+  const topTen = cutoff == null ? completeRanking : completeRanking.filter(item => Number(item.saldo_acumulado || 0) >= Number(cutoff))
+  const rankOf = (item) => 1 + completeRanking.filter(other => Number(other.saldo_acumulado || 0) > Number(item.saldo_acumulado || 0)).length
   const podium = topTen.slice(0, 3)
   const remaining = topTen.slice(3)
 
   const studentPosition = isStudent
-    ? completeRanking.findIndex(
-        (item) => item.id === student?.id
-      ) + 1
+    ? (completeRanking.some(item => item.id === student?.id) ? rankOf(student) : 0)
     : 0
 
   return (
@@ -159,6 +160,7 @@ export default function RankingView({
         )}
 
         <section className="ranking-controls-card">
+          <p className="mw-ranking-note">Clasificación por MathCoins acumulados · las compras no bajan tu avance.</p>
           <div className="ranking-type-buttons">
             <button
               type="button"
@@ -248,21 +250,21 @@ export default function RankingView({
               {podium[1] && (
                 <PodiumStudent
                   student={podium[1]}
-                  position={2}
+                  position={2} rank={rankOf(podium[1])}
                 />
               )}
 
               {podium[0] && (
                 <PodiumStudent
                   student={podium[0]}
-                  position={1}
+                  position={1} rank={rankOf(podium[0])}
                 />
               )}
 
               {podium[2] && (
                 <PodiumStudent
                   student={podium[2]}
-                  position={3}
+                  position={3} rank={rankOf(podium[2])}
                 />
               )}
             </section>
@@ -271,14 +273,14 @@ export default function RankingView({
               <section className="ranking-rest-card">
                 <div className="ranking-section-title">
                   <Award size={20} />
-                  <h2>Top 10</h2>
+                  <h2>Top 10 · incluye empates</h2>
                 </div>
 
                 <div className="ranking-results-list">
                   {remaining.map((item, index) => (
                     <article key={item.id}>
                       <span className="ranking-number">
-                        {index + 4}
+                        {rankOf(item)}
                       </span>
 
                       <span className="ranking-avatar">
@@ -291,12 +293,12 @@ export default function RankingView({
                           {nombreCompleto(item)}
                         </strong>
 
-                        <small>{item.grupo}</small>
+                        <small>{item.grupo}</small><StarJourney student={item} compact />
                       </div>
 
                       <b>
                         {Number(
-                          item.saldo || 0
+                          item.saldo_acumulado || 0
                         ).toLocaleString('es-MX')}
 
                         <small> MC</small>
@@ -329,7 +331,7 @@ export default function RankingView({
 
                 <b>
                   {Number(
-                    student.saldo || 0
+                    student.saldo_acumulado || 0
                   ).toLocaleString('es-MX')}
 
                   <small> MC</small>
@@ -349,7 +351,8 @@ export default function RankingView({
 
 function PodiumStudent({
   student,
-  position
+  position,
+  rank
 }) {
   return (
     <article
@@ -368,17 +371,18 @@ function PodiumStudent({
 
       <strong>{nombreCompleto(student)}</strong>
       <small>{student.grupo}</small>
+      <StarJourney student={student} compact />
 
       <b>
         <Coins size={16} />
 
         {Number(
-          student.saldo || 0
+          student.saldo_acumulado || 0
         ).toLocaleString('es-MX')}
       </b>
 
       <div className="podium-base">
-        {position}
+        {rank}
       </div>
     </article>
   )

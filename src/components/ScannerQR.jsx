@@ -11,8 +11,11 @@ import {
 export default function ScannerQR({
   onRead,
   title = '¡Cuenta tus MathCoins!',
+  students = [],
   allowManual = false
 }) {
+  const [nameSearch, setNameSearch] = useState(false)
+  const [query, setQuery] = useState('')
   const [manual, setManual] = useState(false)
   const [id, setId] = useState('')
   const [locked, setLocked] = useState(false)
@@ -99,6 +102,7 @@ export default function ScannerQR({
 
     setLocked(false)
     setCameraError('')
+    setNameSearch(false)
     setManual((current) => !current)
   }
 
@@ -131,7 +135,13 @@ export default function ScannerQR({
         )}
       </div>
 
-      {manual && allowManual ? (
+      {allowManual && <div className="tabs mw-search-tabs">{[['qr','QR'],['id','ID'],['name','Nombre']].map(([mode,label]) => <button type="button" key={mode} className={(nameSearch ? mode === 'name' : manual ? mode === 'id' : mode === 'qr') ? 'active' : ''} onClick={() => { unlockScanner(); setCameraError(''); setNameSearch(mode === 'name'); setManual(mode === 'id') }}>{label}</button>)}</div>}
+      {nameSearch && allowManual ? <div className="mw-name-search"><label>Buscar alumno<input value={query} onChange={e => setQuery(e.target.value)} placeholder="Nombre o apellidos" /></label>
+        {query.trim().length < 2 ? <p>Escribe al menos dos letras.</p> : <div className="student-list">{students.filter(student => {
+          const normalize = v => String(v).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()
+          return normalize([student.nombre,student.apellido_paterno,student.apellido_materno].join(' ')).includes(normalize(query.trim()))
+        }).map(student => <button disabled={locked} type="button" key={student.id} onClick={() => accept(student.id)}><div><strong>{[student.nombre,student.apellido_paterno,student.apellido_materno].filter(Boolean).join(' ')}</strong><small>{student.grupo} · ID {student.id}</small></div></button>)}</div>}
+      </div> : manual && allowManual ? (
         <form
           className="manual-id"
           onSubmit={(event) => {

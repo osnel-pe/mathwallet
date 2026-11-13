@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import MathyLocks from './MathyLocks'
 import MathyGame from './MathyGame'
 import Mathy2Game from './Mathy2Game'
 import { accederMathy2 } from '../services/mathy2'
@@ -7,6 +8,8 @@ import '../mathy.css'
 import '../mathy2.css'
 
 export default function MathyHub({ student, onBack, onStudentUpdated }) {
+  const [locks, setLocks] = useState([])
+  const allClosed = n => locks.filter(r => r.aventura === n && r.bloqueado).length === (n === 1 ? 100 : 50)
   const [view, setView] = useState('menu')
   const [status, setStatus] = useState(null)
   const [error, setError] = useState('')
@@ -45,8 +48,9 @@ export default function MathyHub({ student, onBack, onStudentUpdated }) {
         <img src="/mathy.png" alt="Mathy" />
         <WorldArt mundo={unlocked ? 2 : 1} />
       </section>
+      <MathyLocks onChange={setLocks} />
       <div className="mathy2-adventures">
-        <section className="mathy2-adventure mathy2-adventure-one">
+        {allClosed(1) ? <section className="mw-closed-adventure"><span aria-hidden="true">🔒</span><div><b>Mathy 1 · aventura cerrada</b><small>Tu avance se conserva. Tu maestro puede volver a abrirla.</small></div></section> : <section className="mathy2-adventure mathy2-adventure-one">
           <div className="mathy2-adventure-head"><span className="mathy2-season">AVENTURA 01</span><span aria-hidden="true">🧭</span></div>
           <h2>Juega con Mathy 1</h2>
           <p>La aventura donde todo comenzó. Tus niveles y premios siguen aquí.</p>
@@ -55,8 +59,8 @@ export default function MathyHub({ student, onBack, onStudentUpdated }) {
           <button type="button" onClick={() => setView('one')}>
             {status?.mathy1_completados === 100 ? 'Ver aventura completada' : 'Continuar Mathy 1'} <span aria-hidden="true">↗</span>
           </button>
-        </section>
-        <section className={`mathy2-adventure mathy2-adventure-two ${unlocked ? '' : 'mathy2-locked'}`}>
+        </section>}
+        {allClosed(2) ? <section className="mw-closed-adventure"><span aria-hidden="true">🔒</span><div><b>Mathy 2 · aventura cerrada</b><small>Tu avance se conserva. Tu maestro puede volver a abrirla.</small></div></section> : <section className={`mathy2-adventure mathy2-adventure-two ${unlocked ? '' : 'mathy2-locked'}`}>
           <div className="mathy2-adventure-head"><span className="mathy2-season">AVENTURA 02</span><span aria-hidden="true">{unlocked ? '⚡' : '🔒'}</span></div>
           <h2>Juega con Mathy 2</h2>
           <p>{status?.grado === 2 ? 'Potencias, ciencia y álgebra. Conquista el núcleo de la incógnita.' : 'Enteros, enigmas y operaciones. Llega a la cumbre de los números.'}</p>
@@ -66,7 +70,7 @@ export default function MathyHub({ student, onBack, onStudentUpdated }) {
           <button type="button" disabled={loading || !unlocked || !!error} onClick={() => setView('two')}>
             {loading ? 'Comprobando…' : unlocked ? status.completados === 50 ? 'Ver mis resultados' : 'Entrar a Mathy 2' : 'Aventura bloqueada'}
           </button>
-        </section>
+        </section>}
       </div>
       {error && <div className="mathy2-error" role="alert"><p>{error}</p><button type="button" onClick={() => setReload((n) => n + 1)}>Volver a comprobar</button></div>}
       <p className="mathy2-footnote">Tus logros de Mathy 1 se conservan. En Mathy 2, cada nivel es una oportunidad nueva.</p>

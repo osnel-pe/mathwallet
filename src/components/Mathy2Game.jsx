@@ -1,3 +1,4 @@
+import useMathyLevelLock from './useMathyLevelLock'
 import { useEffect, useRef, useState } from 'react'
 import { accederMathy2, responderMathy2 } from '../services/mathy2'
 import { Confetti, MathyCompanion, MathyHeader, MathyToast, WORLDS, WorldArt } from './Mathy2UI'
@@ -8,6 +9,7 @@ const cheers = ['¡Tu razonamiento brilla!', '¡Un paso más hacia la cima!', '�
 
 export default function Mathy2Game({ student, onBack, onStudentUpdated }) {
   const [state, setState] = useState(null)
+  const levelLock = useMathyLevelLock(2, state?.reto?.id)
   const [clave, setClave] = useState('')
   const [started, setStarted] = useState(false)
   const [busy, setBusy] = useState(true)
@@ -68,7 +70,7 @@ export default function Mathy2Game({ student, onBack, onStudentUpdated }) {
   }, [state?.reto?.id, started])
 
   async function answer(response, retry = false) {
-    if (lock.current || busy || !state?.reto || message) return
+    if (lock.current || busy || !state?.reto || message || levelLock.loading || levelLock.locked) return
     lock.current = true
     setBusy(true)
     setError('')
@@ -121,10 +123,10 @@ export default function Mathy2Game({ student, onBack, onStudentUpdated }) {
   const selectedSum = selection.reduce((sum, i) => sum + Number(options[i]), 0)
   const disabled = busy || !!message || !!pending.current
 
-  return <main ref={viewport} className="app-shell mathy-game mathy2" data-world={world}>
+  return <main ref={viewport} className={`app-shell mathy-game mathy2 ${levelLock.loading || levelLock.locked ? 'mw-game-locked' : ''}`} data-world={world}>
     <MathyHeader onBack={onBack} label="Mathy 2" />
     <Confetti show={celebrate} />
-    <div className="mathy-content">
+    <div className="mathy-content">{state?.reto && (levelLock.loading || levelLock.locked) && <aside className="mw-lock-summary" role="status"><b>{levelLock.loading ? 'Comprobando nivel…' : `🔒 Nivel ${state.reto.id} cerrado`}</b><small>{levelLock.error || 'Tu maestro controla la disponibilidad. Tu avance está guardado.'}</small><button type="button" onClick={onBack}>Volver a Aventuras</button></aside>}
       {error && <section className="mathy2-error" role="alert"><p>{error}</p>
         <button type="button" disabled={busy} onClick={() => pending.current ? answer(null, true) : setReload((n) => n + 1)}>
           {busy ? 'Comprobando…' : pending.current ? 'Reintentar el mismo envío' : 'Volver a conectar'}

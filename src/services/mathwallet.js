@@ -74,9 +74,8 @@ export async function obtenerAlumnos() {
 
   if (error) throw error
 
-  return (data ?? []).filter((alumno) =>
-    esGrupoPermitido(alumno.grupo)
-  )
+  const awards = await obtenerEstrellas()
+  return (data ?? []).filter(alumno => esGrupoPermitido(alumno.grupo)).map(alumno => ({ ...alumno, estrellas: awards.filter(e => Number(e.alumno_id) === Number(alumno.id)) }))
 }
 
 export async function obtenerAlumno(id) {
@@ -96,7 +95,8 @@ export async function obtenerAlumno(id) {
     )
   }
 
-  return data
+  const awards = await obtenerEstrellas()
+  return { ...data, estrellas: awards.filter(e => Number(e.alumno_id) === Number(data.id)) }
 }
 
 export async function obtenerMovimientos(
@@ -128,7 +128,7 @@ export async function registrarMovimiento({
   requireSupabase()
 
   const { data, error } = await supabase.rpc(
-    'registrar_movimiento_mathcoins',
+    'mw_registrar_movimiento',
     {
       p_alumno_id: alumnoId,
       p_cantidad: cantidad,
@@ -199,7 +199,7 @@ export async function cambiarPeriodoMathWallet(
   requireSupabase()
 
   const { data, error } = await supabase.rpc(
-    'cambiar_periodo_mathwallet',
+    'mw_cambiar_periodo',
     {
       p_nuevo_periodo: Number(nuevoPeriodo),
       p_confirmacion: confirmacion
@@ -209,4 +209,18 @@ export async function cambiarPeriodoMathWallet(
   if (error) throw error
 
   return data
+}
+export async function obtenerEstrellas() {
+  const { data, error } = await supabase.rpc('mw_estrellas_actuales')
+  if (error) throw error
+  return data || []
+}
+export async function obtenerBloqueos() {
+  const { data, error } = await supabase.from('mw_mathy_niveles').select('*').order('aventura').order('nivel')
+  if (error) throw error
+  return data || []
+}
+export async function cambiarBloqueos(aventura, desde, hasta, bloqueado) {
+  const { error } = await supabase.rpc('mw_bloquear_niveles', { p_aventura: aventura, p_desde: desde, p_hasta: hasta, p_bloqueado: bloqueado })
+  if (error) throw error
 }

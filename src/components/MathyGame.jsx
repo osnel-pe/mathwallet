@@ -1,3 +1,4 @@
+import useMathyLevelLock from './useMathyLevelLock'
 import { useEffect, useRef, useState } from 'react'
 import {
   accederMathyDirecto,
@@ -8,6 +9,7 @@ import '../mathy.css'
 export default function MathyGame({ student, onBack, onStudentUpdated }) {
   const [clave, setClave] = useState('')
   const [state, setState] = useState(null)
+  const levelLock = useMathyLevelLock(1, state?.reto?.id)
   const [selection, setSelection] = useState([])
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState('')
@@ -85,7 +87,7 @@ const timer = setTimeout(() => setCelebrate(false), 2200)
 }
 
   async function responder(answer) {
-    if (requestLock.current || busy || !state?.reto) return
+    if (requestLock.current || busy || !state?.reto || levelLock.loading || levelLock.locked) return
     requestLock.current = true
     setBusy(true)
     setMessage('')
@@ -123,7 +125,7 @@ const timer = setTimeout(() => setCelebrate(false), 2200)
   const selectedSum = selection.reduce((sum, index) => sum + options[index], 0)
 
   return (
-    <main className="app-shell mathy-game">
+    <main className={`app-shell mathy-game ${levelLock.loading || levelLock.locked ? 'mw-game-locked' : ''}`}>
 
           {celebrate && (
       <div
@@ -160,7 +162,7 @@ const timer = setTimeout(() => setCelebrate(false), 2200)
           ¡Juega con Mathy!
         </span>
       </header>
-      <div className="mathy-content">
+      <div className="mathy-content">{state?.reto && (levelLock.loading || levelLock.locked) && <aside className="mw-lock-summary" role="status"><b>{levelLock.loading ? 'Comprobando nivel…' : `🔒 Nivel ${state.reto.id} cerrado`}</b><small>{levelLock.error || 'Tu maestro controla la disponibilidad. Tu avance está guardado.'}</small><button type="button" onClick={onBack}>Volver a Aventuras</button></aside>}
         {!started && (
         <section className="mathy-intro">
           <div className={`mathy-character ${celebrate ? 'mathy-celebrate' : ''}`}>
@@ -229,7 +231,7 @@ const timer = setTimeout(() => setCelebrate(false), 2200)
             </section>
 
             {reto && !started ? (
-  <section className="mathy-card">
+  <section className="mathy-card mathy-launch">
     <h2>
       {completed === 0
         ? '¡Tu aventura comienza aquí!'
