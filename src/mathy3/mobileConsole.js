@@ -1,10 +1,16 @@
 import { useEffect, useRef, useState } from 'react'
 
-function viewport() {
-  if (typeof window === 'undefined') return { phone: false, portrait: false }
-  const coarse = window.matchMedia?.('(pointer: coarse)').matches || navigator.maxTouchPoints > 0
-  const shortSide = Math.min(window.screen?.width || innerWidth, window.screen?.height || innerHeight)
-  return { phone: !!coarse && shortSide <= 950, portrait: innerHeight > innerWidth }
+export function viewport() {
+  if (typeof window === 'undefined') return { phone: false, portrait: false, width: 0, height: 0, standalone: false }
+  const ua = navigator.userAgent || ''
+  const touch = navigator.maxTouchPoints > 0 || window.matchMedia?.('(any-pointer: coarse)').matches
+  const phone = !!(navigator.userAgentData?.mobile || /Android|iPhone|iPod|iPad|Mobile/i.test(ua) ||
+    (touch && (Math.min(window.screen?.width || innerWidth, window.screen?.height || innerHeight) <= 1100 || /Macintosh/i.test(ua))))
+  const vv = window.visualViewport
+  return { phone, portrait: innerHeight > innerWidth,
+    width: Math.round(vv?.width || innerWidth), height: Math.round(vv?.height || innerHeight),
+    left: vv?.offsetLeft || 0, top: vv?.offsetTop || 0,
+    standalone: !!navigator.standalone || !!window.matchMedia?.('(display-mode: standalone)').matches }
 }
 
 export function useMobileConsole(pause) {
@@ -42,6 +48,8 @@ export function useMobileConsole(pause) {
         wake.current = null
       }
     }
+    window.visualViewport?.addEventListener('resize', measure)
+    window.visualViewport?.addEventListener('scroll', measure)
     window.addEventListener('resize', measure)
     window.addEventListener('orientationchange', measure)
     document.addEventListener('fullscreenchange', fs)
@@ -49,6 +57,8 @@ export function useMobileConsole(pause) {
     measure()
     return () => {
       mounted.current = false
+      window.visualViewport?.removeEventListener('resize', measure)
+      window.visualViewport?.removeEventListener('scroll', measure)
       window.removeEventListener('resize', measure)
       window.removeEventListener('orientationchange', measure)
       document.removeEventListener('fullscreenchange', fs)
@@ -59,6 +69,15 @@ export function useMobileConsole(pause) {
       if (document.fullscreenElement === rootRef.current) document.exitFullscreen?.().catch(() => {})
     }
   }, [])
+
+  useEffect(() => {
+    if (!view.phone) return
+    const bodyOverflow=document.body.style.overflow
+    const rootOverflow=document.documentElement.style.overflow
+    document.body.style.overflow='hidden'
+    document.documentElement.style.overflow='hidden'
+    return () => {document.body.style.overflow=bodyOverflow; document.documentElement.style.overflow=rootOverflow}
+  }, [view.phone])
 
   async function enter(element) {
     rootRef.current = element
@@ -72,7 +91,7 @@ export function useMobileConsole(pause) {
     } catch {}
     try { if (full) await window.screen.orientation?.lock?.('landscape') } catch {}
     if (!mounted.current) return
-    setFallback(!full)
+    setFallback(!full && !viewport().standalone)
     setReady(true)
     setView(viewport())
     try {

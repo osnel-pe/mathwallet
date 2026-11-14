@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { WORLDS, LEVEL_COUNT, levelTitle, MECHANICS } from '../mathy3/content'
 import { createState, stepWorld, solveGate, applyDamage, HEIGHT, ROOM } from '../mathy3/engine'
 import { renderWorld } from '../mathy3/render'
@@ -11,7 +12,11 @@ import {
 import '../mathy3/mathy3.css'
 import { useMobileConsole } from '../mathy3/mobileConsole'
 import { MathyAudio, readSoundPreference, saveSoundPreference } from '../mathy3/audio'
-export default function Mathy3Game({
+export default function Mathy3Game(props) {
+  const game = <SuperMathyGame {...props} />
+  return typeof document === 'undefined' ? game : createPortal(game, document.body)
+}
+function SuperMathyGame({
   student,
   onBack,
   onStudentUpdated,
@@ -39,6 +44,7 @@ export default function Mathy3Game({
     [full, setFull] = useState(false),
     [loss, setLoss] = useState(null),
     [creditNotice, setCreditNotice] = useState(null)
+  const [audioReady, setAudioReady] = useState(false)
   const accountRef = useRef(null),
     modeRef = useRef(mode),
     engine = useRef(null),
@@ -103,28 +109,48 @@ export default function Mathy3Game({
     clearInput()
     if (modeRef.current === 'playing') { modeRef.current = 'paused'; setMode('paused') }
     audio.current?.setEnabled(false)
+    audio.current?.setMusic(false)
   })
   const mobileBlocked = useRef(mobile.blocked)
   mobileBlocked.current = mobile.blocked
   useEffect(() => {
-    audio.current?.setEnabled(sound && !mobile.blocked && !document.hidden)
-  }, [sound, mobile.blocked, mode])
+    const active = sound && !mobile.blocked && !document.hidden && !teacherBlocked
+    audio.current?.setEnabled(active)
+    audio.current?.setMusic(active && mode === 'playing')
+  }, [sound, mobile.blocked, mode, teacherBlocked])
   function unlockAudio() {
     if (!soundRef.current) return
     audio.current ||= new MathyAudio()
-    audio.current.setEnabled(!mobileBlocked.current)
-    audio.current.resume().catch(() => {})
+    audio.current.setEnabled(true)
+    audio.current.resume().then(ok => {
+      if (!alive.current) return
+      setAudioReady(ok)
+      audio.current?.setEnabled(soundRef.current && !mobileBlocked.current && !lockRef.current && !document.hidden)
+      audio.current?.setMusic(soundRef.current && !mobileBlocked.current && !lockRef.current && modeRef.current === 'playing')
+    }).catch(() => {if (alive.current) setAudioReady(false)})
   }
   function toggleSound() {
-    const next = !sound
+    const next = !sound || !audioReady
     soundRef.current = next
     setSound(next)
     saveSoundPreference(next)
     audio.current ||= new MathyAudio()
     audio.current.setEnabled(next)
-    if (next) audio.current.resume().then(() => audio.current?.play('ui')).catch(() => {})
+    if (!next) audio.current.setMusic(false)
+    else {
+      audio.current.resume().then(ok => {
+        if (!alive.current) return
+        setAudioReady(ok)
+        if(ok) {audio.current?.play('ui'); audio.current?.setMusic(modeRef.current === 'playing' && !mobileBlocked.current && !lockRef.current)}
+        else setMessage('Toca el botón de audio para volver a intentarlo y revisa el volumen multimedia.')
+      }).catch(() => {if(alive.current) setAudioReady(false)})
+    }
   }
   async function enterMobile() {
+    // Este botón pide explícitamente pantalla y audio en el mismo gesto.
+    soundRef.current = true
+    setSound(true)
+    saveSoundPreference(true)
     unlockAudio()
     await mobile.enter(shell.current)
   }
@@ -303,7 +329,7 @@ export default function Mathy3Game({
       if (modeRef.current === 'playing') setMode('paused')
     }
     const hidden = () => {
-      if (document.hidden) { blur(); audio.current?.setEnabled(false) }
+      if (document.hidden) { blur(); audio.current?.setEnabled(false); audio.current?.setMusic(false) }
     }
     const fs = () => setFull(!!document.fullscreenElement)
     window.addEventListener('blur', blur)
@@ -675,7 +701,10 @@ export default function Mathy3Game({
   const mechanic = level == null ? null : MECHANICS[engine.current?.level.recipes[room] || 'gap']
   const gradeLabel = account?.grado === 3 ? 'PREPA' : `${account?.grado || '—'}° SECUNDARIA`
   return (
-    <main ref={shell} className={`m3-app sm-app ${full ? 'm3-fullscreen' : ''} ${mobile.phone ? 'sm-phone' : ''} ${level !== null ? 'sm-in-level' : ''}`} onPointerDownCapture={unlockAudio}>
+    <main ref={shell} className={`m3-app sm-app ${full ? 'm3-fullscreen' : ''} ${mobile.phone ? 'sm-phone' : ''} ${level !== null ? 'sm-in-level' : ''}`} onPointerDownCapture={unlockAudio} style={mobile.phone ? {
+      '--sm-vw': `${mobile.width}px`, '--sm-vh': `${mobile.height}px`,
+      '--sm-vx': `${mobile.left}px`, '--sm-vy': `${mobile.top}px`
+    } : undefined}>
       <header className="m3-header">
         <button
           disabled={busy.current || mode === 'sync'}
@@ -691,18 +720,18 @@ export default function Mathy3Game({
         <button
           className="m3-icon-button"
           onClick={toggleSound}
-          aria-label={sound ? 'Desactivar sonido' : 'Activar sonido'}
+          aria-label={sound && audioReady ? 'Silenciar audio' : 'Activar audio'}
           aria-pressed={sound}
         >
-          {sound ? '♫' : '♪'}
+          {sound && audioReady ? '♫' : '♪'}
         </button>
       </header>
       {mobile.blocked && <div className="sm-mobile-gate" role="dialog" aria-modal="true" aria-label="Modo consola móvil">
         <div className="sm-rotate-icon" aria-hidden="true">↻<span>▯</span></div>
-        <span className="sm-console-eyebrow">SUPER MATHY · MODO CONSOLA</span>
-        <h1>{mobile.portrait ? 'Gira tu teléfono' : 'Tu aventura, a pantalla completa'}</h1>
-        <p>{mobile.portrait ? 'Para jugar, coloca el teléfono en horizontal. Así tienes todo el mundo y tus controles a mano.' : 'Activa el modo juego y usa las dos manos. Tú controlas cada salto.'}</p>
-        <button className="m3-primary" onClick={enterMobile}>{mobile.portrait ? 'Activar pantalla de juego' : 'Entrar en modo juego →'}</button>
+        <span className="sm-console-eyebrow">SUPER MATHY · POCKET CONSOLE</span>
+        <h1>{mobile.portrait ? 'Gira tu teléfono' : 'Tu consola está lista'}</h1>
+        <p>{mobile.portrait ? 'Para jugar, coloca el teléfono en horizontal. Así tienes todo el mundo y tus controles a mano.' : 'Controles para ambos pulgares. Música, saltos y diamantes con sonido. Toca para empezar.'}</p>
+        <button className="m3-primary" onClick={enterMobile}>{mobile.portrait ? 'Activar pantalla de juego' : 'Jugar · activar pantalla y audio ▶'}</button>
         <small>Si tu navegador no permite pantalla completa, usaremos todo el espacio disponible. Para ocultar las barras en iPhone, abre la app desde la pantalla de inicio.</small>
         <button className="m3-text-button" onClick={onBack}>← Volver a las aventuras</button>
       </div>}
@@ -866,8 +895,8 @@ export default function Mathy3Game({
           {mobile.phone && <nav className="sm-console-toolbar" aria-label="Control de partida">
             <button disabled={mode === 'sync' || busy.current} onClick={() => {beep('ui'); navigate('map')}} aria-label="Volver al mapa">‹ <span>Mapa</span></button>
             <div><b>SUPER MATHY</b><small>{world.name} · {levelTitle(level)}</small></div>
-            <button disabled={mode === 'sync'} onClick={() => {clearInput(); beep('ui'); setMode('paused')}} aria-label="Pausar partida">Ⅱ</button>
-            <button onClick={toggleSound} aria-label={sound ? 'Desactivar sonido' : 'Activar sonido'} aria-pressed={sound}>{sound ? '♫' : '♪'}<span>{sound ? 'ON' : 'OFF'}</span></button>
+            <button disabled={mode === 'sync'} onClick={() => {clearInput(); beep('ui'); setMode('paused')}} aria-label="Pausar partida">Ⅱ<span>PAUSA</span></button>
+            <button onClick={toggleSound} aria-label={sound && audioReady ? 'Silenciar audio' : 'Activar audio'} aria-pressed={sound}>{sound && audioReady ? '♫' : '♪'}<span>{sound && audioReady ? 'ON' : 'TOCA'}</span></button>
           </nav>}
 
           <div className="m3-level-bar">
@@ -961,7 +990,7 @@ export default function Mathy3Game({
                   Volver al mapa
                 </button>
                 <button className="m3-text-button" onClick={toggleSound} aria-pressed={sound}>
-                  Sonido: {sound ? 'activado' : 'desactivado'}
+                  Audio: {sound && audioReady ? 'activado · tocar para silenciar' : 'tocar para activar'}
                 </button>
               </GameDialog>
             )}

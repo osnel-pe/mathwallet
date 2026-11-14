@@ -1937,3 +1937,51 @@
   .sm-phone .m3-dialog p { font-size: 12px; margin: 8px 0; }
 }
 @media (prefers-reduced-motion: reduce) { .sm-phone .m3-controls button { transition: none; } }
+
+/* Pocket Console v2: independiente de los contenedores de la aplicación. */
+.sm-app { z-index: 1000; }
+.sm-app.sm-phone {
+  position: fixed !important; inset: auto !important;
+  left: var(--sm-vx,0px) !important; top: var(--sm-vy,0px) !important;
+  width: var(--sm-vw,100vw) !important; height: var(--sm-vh,100dvh) !important;
+  max-width: none !important; max-height: none !important; min-height: 0 !important;
+  margin: 0 !important; border: 0; border-radius: 0; padding: 0 !important;
+}
+.sm-app.sm-phone.sm-in-level { display: block; overflow: hidden !important; }
+.sm-app.sm-phone .m3-game-content {
+  position: absolute !important; inset: 0 !important; width: 100% !important; height: 100% !important;
+  max-width: none !important; min-height: 0 !important; margin: 0 !important; padding: 0 !important;
+}
+.sm-app.sm-phone .m3-stage {
+  position: absolute !important; inset: 0 !important; width: 100% !important; height: 100% !important;
+  min-height: 0 !important; max-height: none !important; border: 0 !important; border-radius: 0 !important;
+}
+.sm-app.sm-phone .m3-stage canvas { width: 100% !important; height: 100% !important; object-fit: fill; }
+.sm-phone .m3-controls { z-index: 32; }
+.sm-phone .m3-direction {
+  left: 0; bottom: 5px; gap: 5px; padding: 9px;
+  border: 1px solid #fff3; background: linear-gradient(145deg,#102c3a99,#071a2470);
+  box-shadow: inset 0 1px 0 #fff3,0 8px 30px #00151d35;
+}
+.sm-phone .m3-direction button { width: clamp(54px,9vw,78px); height: clamp(54px,15vh,78px); background: linear-gradient(150deg,#38515cea,#172e3de8); border-radius: 16px; font-size: 31px; }
+.sm-phone .m3-jump { width: clamp(64px,10vw,82px); height: clamp(64px,19vh,82px); bottom: 23px; background: linear-gradient(145deg,#d7ffad,#83ce7be8); border: 2px solid #e7ffbd9c; }
+.sm-phone .sm-extra-controls { right: clamp(76px,12vw,99px); bottom: 0; }
+.sm-phone .sm-extra-controls button { width: 59px; height: 59px; border: 2px solid #ffeecb69; background: linear-gradient(145deg,#e5b66ced,#946238e8); color: #241f1a; }
+.sm-phone .sm-extra-controls button:last-child { background: linear-gradient(145deg,#88c3efed,#3b719de8); color: #142b3a; border-color: #c6e9ff77; }
+.sm-phone .sm-console-toolbar { z-index: 35; }
+.sm-phone .sm-console-toolbar > div { padding: 6px 11px; border-radius: 12px; background: #0827308a; backdrop-filter: blur(8px); }
+.sm-phone .sm-console-toolbar button { background: linear-gradient(145deg,#234553e8,#112935e0); border-radius: 50px; }
+.sm-phone .m3-hud { backdrop-filter: blur(8px); }
+.sm-phone .m3-dialog-shade { z-index: 70; }
+.sm-phone .sm-credit-confirmation { z-index: 60; }
+.sm-phone .sm-mobile-gate { position: absolute; }
+@media (orientation:landscape) and (max-height:450px) {
+ .sm-phone .m3-controls { transform: none; height: 126px; }
+ .sm-phone .sm-console-toolbar small { font-size: 8px; }
+}
+.sm-phone .m3-direction::before {
+  content: 'MOVER'; position: absolute; left: 14px; top: -17px;
+  color: #f3ffed; font-size: 8px; font-weight: 800; letter-spacing: 2px;
+  text-shadow: 0 1px 4px #102a30; pointer-events: none;
+}
+.sm-phone .m3-controls button:focus-visible { outline: 2px solid #f7ffd6; outline-offset: 4px; }
