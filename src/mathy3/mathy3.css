@@ -1849,3 +1849,91 @@
     font-size: 12px;
   }
 }
+
+/* Consola táctil: el escenario ocupa el viewport; los mandos flotan encima. */
+.sm-console-toolbar { display: none; }
+.sm-mobile-gate {
+  position: fixed; inset: 0; z-index: 250; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 14px; padding: max(24px,env(safe-area-inset-top)) max(26px,env(safe-area-inset-right)) max(24px,env(safe-area-inset-bottom)) max(26px,env(safe-area-inset-left));
+  background: radial-gradient(ellipse at 50% 15%,#295b4c,#0b241f 65%); color: #eef9e6;
+  text-align: center; overflow-y: auto; overscroll-behavior: contain;
+}
+.sm-mobile-gate h1 { margin: 0; font-size: clamp(24px,5vw,38px); letter-spacing: -1px; }
+.sm-mobile-gate p { max-width: 420px; margin: 0; color: #c4d8c9; line-height: 1.6; font-size: 14px; }
+.sm-mobile-gate small { max-width: 420px; color: #9cb9aa; line-height: 1.5; font-size: 11px; }
+.sm-mobile-gate .m3-primary { max-width: 330px; min-height: 48px; }
+.sm-mobile-gate .m3-text-button { color: #cce5d2; min-height: 44px; }
+.sm-console-eyebrow { color: #c4ed9c; font-size: 10px; letter-spacing: 2px; font-weight: 800; }
+.sm-rotate-icon { position: relative; font-size: 66px; color: #c4ed9c; line-height: 1; width: 86px; height: 80px; }
+.sm-rotate-icon span { position: absolute; inset: 11px 20px; font-size: 44px; transform: rotate(-30deg); color: #eef9e6; }
+.sm-phone { -webkit-tap-highlight-color: transparent; overscroll-behavior: none; }
+.sm-phone.sm-in-level { position: fixed; inset: 0; width: 100%; height: 100dvh; overflow: hidden; touch-action: pan-y; }
+.sm-phone.sm-in-level > .m3-header,
+.sm-phone.sm-in-level .m3-level-bar,
+.sm-phone.sm-in-level .sm-mission,
+.sm-phone.sm-in-level .m3-live-message,
+.sm-phone.sm-in-level .sm-demo-banner { display: none; }
+.sm-phone.sm-in-level .m3-game-content { position: absolute; inset: 0; max-width: none; padding: 0; margin: 0; }
+.sm-phone.sm-in-level .m3-stage { position: absolute; inset: 0; height: 100%; min-height: 0; border: 0; border-radius: 0; }
+.sm-phone.sm-in-level .m3-stage canvas { width: 100%; height: 100%; touch-action: none; }
+.sm-phone .sm-console-toolbar {
+  position: absolute; top: max(8px,env(safe-area-inset-top)); left: max(12px,env(safe-area-inset-left)); right: max(12px,env(safe-area-inset-right));
+  display: flex; align-items: center; gap: 8px; z-index: 25; pointer-events: none;
+}
+.sm-phone .sm-console-toolbar > * { pointer-events: auto; }
+.sm-phone .sm-console-toolbar > div { margin-right: auto; color: white; text-shadow: 0 2px 5px #102a24; }
+.sm-phone .sm-console-toolbar b { display: block; font-size: 11px; letter-spacing: 1.5px; }
+.sm-phone .sm-console-toolbar small { display: block; margin-top: 3px; font-size: 9px; }
+.sm-phone .sm-console-toolbar button {
+  display: flex; align-items: center; justify-content: center; gap: 5px; min-width: 44px; min-height: 44px;
+  padding: 5px 10px; border: 1px solid #e8f5dc40; border-radius: 13px; color: #f6ffec;
+  background: #102d26d9; box-shadow: 0 3px 10px #071e2333; font-size: 21px; touch-action: manipulation;
+}
+.sm-phone .sm-console-toolbar button span { font-size: 10px; }
+.sm-phone.sm-in-level .m3-hud {
+  position: absolute; z-index: 20; top: calc(max(8px,env(safe-area-inset-top)) + 51px);
+  left: max(12px,env(safe-area-inset-left)); display: flex; gap: 12px; max-width: calc(100% - 24px);
+  padding: 7px 10px; border: 1px solid #fff3; border-radius: 12px; background: #102d26c9; font-size: 13px;
+  pointer-events: none;
+}
+.sm-phone.sm-in-level .m3-hud .m3-distance,
+.sm-phone.sm-in-level .m3-hud .sm-wallet small,
+.sm-phone.sm-in-level .sm-gem-meter small { display: none; }
+.sm-phone.sm-in-level .sm-gem-meter { font-size: 12px; }
+.sm-phone.sm-in-level .m3-controls {
+  position: absolute; z-index: 22; inset: auto max(16px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));
+  display: block; height: 126px; padding: 0; pointer-events: none;
+}
+.sm-phone .m3-controls button {
+  pointer-events: auto; touch-action: none; user-select: none; -webkit-user-select: none;
+  border: 1px solid #ecf9e960; box-shadow: inset 0 2px 1px #fff3,0 5px 0 #071c23a8,0 8px 18px #071c2340;
+  transition: transform 80ms,background 80ms; backdrop-filter: blur(6px);
+}
+.sm-phone .m3-controls button:active { transform: translateY(3px) scale(.97); box-shadow: inset 0 2px 4px #0004,0 2px 0 #071c23a8; }
+.sm-phone .m3-controls button:disabled { opacity: .35; }
+.sm-phone .m3-direction { position: absolute; bottom: 8px; left: 0; display: flex; gap: 8px; padding: 9px; border-radius: 25px; background: #0c242e3b; border: 1px solid #fff2; }
+.sm-phone .m3-direction button { width: 64px; height: 64px; min-width: 0; border-radius: 17px; color: #f1fce9; background: #14372acf; font-size: 29px; }
+.sm-phone .sm-extra-controls { position: absolute; right: 75px; bottom: 0; width: 130px; height: 126px; display: block; }
+.sm-phone .sm-extra-controls button { position: absolute; width: 56px; height: 56px; padding: 0; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #fff4d7; background: #715426dc; }
+.sm-phone .sm-extra-controls button:first-child { right: 0; bottom: 0; }
+.sm-phone .sm-extra-controls button:last-child { left: 3px; top: 0; background: #294b68d9; color: #d3efff; }
+.sm-phone .sm-extra-controls b { font-size: 20px; line-height: 1.1; }
+.sm-phone .sm-extra-controls small { font-size: 7px; letter-spacing: .6px; margin-top: 3px; }
+.sm-phone .m3-jump { position: absolute; right: 0; bottom: 35px; width: 68px; height: 68px; min-width: 0; padding: 0; border-radius: 50%; display: flex; flex-direction: column; gap: 2px; color: #123527; background: #c2eca4ed; }
+.sm-phone .m3-jump b { font-size: 27px; line-height: 1.1; }
+.sm-phone .m3-jump span { font-size: 8px; letter-spacing: .8px; margin: 0; }
+.sm-phone .m3-gate-prompt { bottom: 18px; left: 50%; transform: translateX(-50%); max-width: calc(100% - 390px); font-size: 10px; padding: 10px; }
+.sm-phone .m3-gate-prompt kbd { display: none; }
+.sm-phone .m3-dialog-shade { position: fixed; z-index: 50; padding: max(12px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left)); touch-action: pan-y; }
+.sm-phone .m3-dialog { width: min(610px,100%); max-height: 100%; padding: 18px 24px; overscroll-behavior: contain; }
+.sm-phone .m3-dialog h2 { font-size: 23px; }
+.sm-phone .m3-dialog-icon { font-size: 26px; }
+.sm-phone .sm-credit-confirmation { top: calc(max(8px,env(safe-area-inset-top)) + 54px); right: max(14px,env(safe-area-inset-right)); padding: 7px 10px; z-index: 40; }
+@media (max-height: 390px) and (orientation: landscape) {
+  .sm-mobile-gate { gap: 7px; }
+  .sm-mobile-gate .sm-rotate-icon { display: none; }
+  .sm-mobile-gate p { font-size: 12px; }
+  .sm-phone .m3-controls { transform: scale(.88); transform-origin: bottom center; }
+  .sm-phone .m3-dialog p { font-size: 12px; margin: 8px 0; }
+}
+@media (prefers-reduced-motion: reduce) { .sm-phone .m3-controls button { transition: none; } }
